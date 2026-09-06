@@ -1,0 +1,47 @@
+/*
+  light-tokens.css
+  -----------------
+  Overrides tokens.css's dark values with a light theme, SCOPED to the
+  dashboard shell only (loaded by base_dashboard.html, after tokens.css).
+  Public pages (home, student login, simulator) keep the original dark
+  theme untouched - they use different visual language (animated network
+  canvas, decode-text hero) that assumes a dark background and would
+  break if flipped to light. This file only touches CSS custom
+  properties, so shell.css / dashboard-content.css need zero changes
+  beyond replacing their few hardcoded hex values with variables.
+*/
+
+:root {
+  --bg:        #f4f5fa;
+  --panel:     #ffffff;
+  --panel-2:   #ffffff;
+  --border:    #e5e7eb;
+  --hover:     rgba(15,23,42,0.04);
+
+  --text:      #1e2433;
+  --muted:     #6b7280;
+
+  /* Slightly deepened for contrast against a white background */
+  --green:     #16a34a;
+  --red:       #dc2626;
+  --amber:     #d97706;
+  --blue:      #2563eb;
+  --purple:    #7c3aed;
+  --cyan:      #0891b2;
+
+  /* Elements that were hardcoded hex in shell.css/dashboard-content.css */
+  --nav-active-text:   #4338ca;
+  --btn-secondary-bg:  #f3f4f6;
+  --btn-secondary-hover: #e5e7eb;
+  --input-bg: #f9fafb;
+}
+
+body { background: var(--bg); }
+
+/* Cards/panels get a soft shadow instead of relying on a dark/light
+   border contrast to read as "raised" - flat borders alone look weaker
+   on a light background than on dark. */
+.card, .stat-card, .side-card {
+  box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+}
+.sidebar { box-shadow: 1px 0 0 rgba(15,23,42,0.04); }

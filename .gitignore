@@ -1,0 +1,31 @@
+# Database - regenerated automatically by database.init_db() on first run
+intellisense.db
+*.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Virtual environment - never commit this, everyone builds their own
+scapy_env/
+venv/
+env/
+*.egg-info/
+
+# Flask
+instance/
+.flaskenv
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Logs
+logs/*.log

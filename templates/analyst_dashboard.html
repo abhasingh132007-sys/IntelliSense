@@ -1,0 +1,66 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - SOC Analyst Dashboard{% endblock %}
+{% block page_title %}SOC Analyst Dashboard{% endblock %}
+{% block page_sub %}Investigate live alerts and escalate confirmed threats{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:18px;">
+    <div class="card-title">
+        New Incidents
+        <span class="muted">{{ new_incidents | length }} awaiting investigation</span>
+    </div>
+
+    {% if new_incidents %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Time</th><th>Attack</th><th>Source IP</th><th>Severity</th><th>Description</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for inc in new_incidents %}
+            <tr>
+                <td>{{ inc.created_at }}</td>
+                <td>{{ inc.attack_type }}</td>
+                <td>{{ inc.source_ip }}</td>
+                <td class="sev-{{ inc.severity | lower }}">{{ inc.severity }}</td>
+                <td>{{ inc.description }}</td>
+                <td><a class="qa-btn" style="padding:5px 10px; font-size:11.5px; display:inline-block;"
+                       href="{{ url_for('incident_detail', incident_id=inc.incident_id) }}">Investigate</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--muted); padding:16px 0;">No new incidents right now.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-title">
+        Currently Investigating
+        <span class="muted">{{ investigating_incidents | length }}</span>
+    </div>
+
+    {% if investigating_incidents %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Time</th><th>Attack</th><th>Source IP</th><th>Severity</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for inc in investigating_incidents %}
+            <tr>
+                <td>{{ inc.created_at }}</td>
+                <td>{{ inc.attack_type }}</td>
+                <td>{{ inc.source_ip }}</td>
+                <td class="sev-{{ inc.severity | lower }}">{{ inc.severity }}</td>
+                <td><a class="qa-btn" style="padding:5px 10px; font-size:11.5px; display:inline-block;"
+                       href="{{ url_for('incident_detail', incident_id=inc.incident_id) }}">Continue</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--muted); padding:16px 0;">Nothing in progress.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+/*
+  shell.css
+  ---------
+  Styles for the reusable dashboard shell: sidebar + topbar + content area.
+  This loads on every page that extends base_dashboard.html, so the nav
+  always looks and behaves the same everywhere.
+*/
+
+body { display: flex; min-height: 100vh; }
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  width: 230px;
+  background: var(--panel-2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg) 0;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 var(--space-lg) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-md);
+}
+.brand-icon {
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.brand-text b { display: block; font-size: 14px; }
+.brand-text span { display: block; font-size: 11px; color: var(--muted); }
+
+.nav-section { padding: 0 12px; margin-bottom: var(--space-md); }
+.nav-label {
+  font-size: 10.5px; letter-spacing: .08em; color: var(--muted);
+  padding: 6px 12px; text-transform: uppercase;
+}
+.nav-item {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 9px 12px; border-radius: var(--radius-sm);
+  color: var(--muted); cursor: pointer; font-size: 13.5px; margin-bottom: 2px;
+}
+.nav-item .left { display: flex; align-items: center; gap: 10px; }
+.nav-item:hover { background: var(--hover); color: var(--text); }
+.nav-item.active { background: rgba(59,130,246,0.15); color: var(--nav-active-text, #93c5fd); }
+
+.badge {
+  background: var(--red); color: white; font-size: 10.5px;
+  padding: 1px 7px; border-radius: 10px;
+}
+
+.sidebar-footer { margin-top: auto; padding: var(--space-md); }
+.mode-box {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 12px;
+}
+.mode-box .label { font-size: 11px; color: var(--muted); }
+.mode-box .value { color: var(--green); font-weight: 600; margin: 4px 0 10px; }
+.switch-btn {
+  width: 100%; background: var(--btn-secondary-bg, #1d2536); border: 1px solid var(--border); color: var(--text);
+  padding: 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12.5px;
+}
+.switch-btn:hover { background: var(--btn-secondary-hover, #232c42); }
+
+/* ---------- Main / Topbar ---------- */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-md) 26px; border-bottom: 1px solid var(--border);
+}
+.mode-pill {
+  background: rgba(34,197,94,0.15); color: var(--green);
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-left: 10px;
+}
+.topbar-left { display: flex; align-items: center; color: var(--muted); font-size: 13px; }
+.topbar-right { display: flex; align-items: center; gap: 18px; color: var(--muted); }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+}
+
+.content { padding: var(--space-xl) 26px; overflow-y: auto; }
+.page-title { font-size: 20px; font-weight: 600; }
+.page-sub { color: var(--muted); font-size: 13px; margin: var(--space-xs) 0 var(--space-lg); }

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}IntelliSense - Learning Simulator{% endblock %}
+
+{% block content %}
+
+<section class="sim-intro" style="margin-top:60px;">
+    <span class="hero-eyebrow">Learning Simulator</span>
+    <h1 style="margin-top:16px;">See attacks. Understand defenses.</h1>
+    <p>
+        Pick a scenario below. Each one walks through a predefined packet sequence,
+        explains why the detection engine flags it, and shows the exact prevention
+        action that would be applied &mdash; no real network attack required.
+    </p>
+</section>
+
+<div class="attack-list">
+    <div class="attack-card" data-attack="port_scan" style="--accent:#3b82f6;">
+        <span class="a-icon">🔍</span>
+        <h3>Port Scan</h3>
+        <p>Attacker probes multiple ports to find open services.</p>
+    </div>
+    <div class="attack-card" data-attack="dos" style="--accent:#ef4444;">
+        <span class="a-icon">🔥</span>
+        <h3>DoS Attack</h3>
+        <p>Flood of requests overwhelms the target service.</p>
+    </div>
+    <div class="attack-card" data-attack="ssh_bruteforce" style="--accent:#f59e0b;">
+        <span class="a-icon">🔑</span>
+        <h3>SSH Brute Force</h3>
+        <p>Repeated login attempts trying to guess credentials.</p>
+    </div>
+    <div class="attack-card" data-attack="icmp_flood" style="--accent:#06b6d4;">
+        <span class="a-icon">📶</span>
+        <h3>ICMP Flood</h3>
+        <p>Excessive ping requests used to exhaust bandwidth.</p>
+    </div>
+</div>
+
+<div id="simulation-area">
+    <div class="sim-box">
+        <p style="color:var(--muted);">Select an attack above to begin the simulation.</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+{% endblock %}

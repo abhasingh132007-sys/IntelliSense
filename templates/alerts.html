@@ -1,0 +1,28 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Alerts{% endblock %}
+{% block page_title %}All Alerts{% endblock %}
+{% block page_sub %}Complete alert history from the detection engine{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">{{ alerts | length }} Alerts</div>
+    <table class="data-table">
+        <thead>
+            <tr><th>Time</th><th>Type</th><th>Source IP</th><th>Severity</th><th>Status</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+            {% for a in alerts %}
+            <tr>
+                <td>{{ a.time }}</td>
+                <td>{{ a.type }}</td>
+                <td>{{ a.source_ip }}</td>
+                <td class="sev-{{ a.severity | lower }}">{{ a.severity }}</td>
+                <td><span class="status-pill status-{{ a.status | lower }}">{{ a.status }}</span></td>
+                <td>{{ a.description }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

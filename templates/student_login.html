@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IntelliSense - Student Sign In</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/org-page.css') }}">
+    <style>
+        /* Student variant: slightly cooler/pinker gradient to feel distinct from Organization */
+        .gradient-hero.student-theme {
+            background: linear-gradient(135deg, #1e1b4b 0%, #6d28d9 55%, #a21caf 100%);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="org-navbar">
+    <a href="{{ url_for('home') }}" class="brand-inline"><img src="{{ url_for('static', filename='img/logo.svg') }}" alt="IntelliSense" class="brand-logo"> IntelliSense</a>
+    <div class="nav-links">
+        <a href="#top">Home</a>
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="{{ url_for('home') }}" class="nav-cta">Organization Login</a>
+    </div>
+</nav>
+
+<section class="gradient-hero student-theme" id="top">
+    <div class="gradient-hero-inner">
+        <div class="gradient-hero-left">
+            <span class="hero-eyebrow-pill">Learning Simulator</span>
+            <h1 class="decode-text" data-text="IntelliSense"></h1>
+            <p class="subhead">
+                Explore how network attacks are detected and prevented, with guided
+                step-by-step scenarios &mdash; using the exact same detection engine
+                that runs in production, no real network required.
+            </p>
+
+            {% if error %}<div class="hero-error">{{ error }}</div>{% endif %}
+
+            <form method="POST" class="hero-login-form">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus autocomplete="username">
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+
+                <button class="hero-login-btn" type="submit">Sign In &rarr;</button>
+            </form>
+
+            <div class="hero-footnote">
+                <a href="{{ url_for('home') }}">Organization user instead? Sign in here</a>
+            </div>
+        </div>
+
+        <div class="gradient-hero-right">
+            <div class="preview-card">
+                <div class="preview-titlebar">
+                    <span class="preview-dot" style="background:#ff5f57;"></span>
+                    <span class="preview-dot" style="background:#febc2e;"></span>
+                    <span class="preview-dot" style="background:#28c840;"></span>
+                    <span class="preview-url">intellisense.app/simulator</span>
+                </div>
+                <div class="preview-body">
+                    <h4>Learning Simulator</h4>
+
+                    <div class="preview-stats">
+                        <div class="preview-stat"><div class="p-val">4</div><div class="p-lbl">SCENARIOS</div></div>
+                        <div class="preview-stat"><div class="p-val">3</div><div class="p-lbl">STEPS EACH</div></div>
+                        <div class="preview-stat"><div class="p-val">0</div><div class="p-lbl">RISK</div></div>
+                    </div>
+
+                    <div class="preview-chart">
+                        <div class="bar" style="height:40%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
+                        <div class="bar" style="height:65%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
+                        <div class="bar" style="height:30%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
+                        <div class="bar" style="height:80%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
+                        <div class="bar" style="height:55%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
+                        <div class="bar" style="height:45%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
+                        <div class="bar" style="height:70%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
+                        <div class="bar" style="height:60%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
+                    </div>
+
+                    <table class="preview-table">
+                        <thead><tr><th>Scenario</th><th>Detects</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <tr><td>Port Scan</td><td>10 ports / 5s</td><td><span class="preview-status">Ready</span></td></tr>
+                            <tr><td>DoS Attack</td><td>50 pkts / 2s</td><td><span class="preview-status">Ready</span></td></tr>
+                            <tr><td>ICMP Flood</td><td>30 pings / 2s</td><td><span class="preview-status">Ready</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-hint">
+        <span>Learn more below</span>
+        <span class="arrow">↓</span>
+    </div>
+</section>
+
+<section id="about" class="about-section reveal">
+    <div class="section-label">About the Simulator</div>
+    <h2 class="section-title">Learn by watching real detection logic run</h2>
+    <div class="about-grid">
+        <p>
+            Each scenario generates a realistic packet sequence with Scapy and feeds it
+            straight into the same <strong>detection engine</strong> used on real network
+            traffic in the Organization Portal &mdash; so what you see explained here is
+            exactly how the system would react to a real attack, not a scripted story.
+        </p>
+    </div>
+</section>
+
+<section id="features" class="reveal">
+    <div class="section-label">What You'll Explore</div>
+    <h2 class="section-title">Four guided attack scenarios</h2>
+
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="f-icon" style="background:rgba(124,58,237,0.1); color:#7c3aed;">🔍</div>
+            <h3>Port Scan</h3>
+            <p>See how probing many ports quickly gets flagged as reconnaissance.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon" style="background:rgba(220,38,38,0.1); color:#dc2626;">🔥</div>
+            <h3>DoS Attack</h3>
+            <p>Watch a flood of requests trip the rate-based detection threshold.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon" style="background:rgba(217,119,6,0.1); color:#d97706;">🔑</div>
+            <h3>SSH Brute Force</h3>
+            <p>Understand how repeated failed logins are tracked per source.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon" style="background:rgba(8,145,178,0.1); color:#0891b2;">📶</div>
+            <h3>ICMP Flood</h3>
+            <p>Learn why excessive ping traffic triggers a flood alert.</p>
+        </div>
+    </div>
+</section>
+
+<section id="demos" class="reveal">
+    <div class="section-label">See It In Action</div>
+    <h2 class="section-title">Simulator walkthroughs</h2>
+
+    <div class="demo-grid">
+        <div class="demo-card">
+            <div class="demo-placeholder" style="background:linear-gradient(135deg,#1e1b4b,#6d28d9 55%,#a21caf);">
+                <div class="demo-play-icon">▶</div>
+                <span class="demo-coming-soon">Coming soon</span>
+            </div>
+            <div class="demo-card-body">
+                <h3>Running a Port Scan Scenario</h3>
+                <p>Step through detection logic as a simulated scan unfolds.</p>
+            </div>
+        </div>
+        <div class="demo-card">
+            <div class="demo-placeholder" style="background:linear-gradient(135deg,#1e1b4b,#6d28d9 55%,#a21caf);">
+                <div class="demo-play-icon">▶</div>
+                <span class="demo-coming-soon">Coming soon</span>
+            </div>
+            <div class="demo-card-body">
+                <h3>Understanding Prevention</h3>
+                <p>See exactly what action would be taken and why.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="org-footer">
+    <p>IntelliSense &mdash; Intelligent Network Intrusion Detection, Prevention and Learning Platform</p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/hero-decode.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scroll-reveal.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Incident #{{ incident.incident_id }}{% endblock %}
+{% block page_title %}Incident #{{ incident.incident_id }} &mdash; {{ incident.attack_type }}{% endblock %}
+{% block page_sub %}Status: {{ incident.status }}{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:18px;">
+    <div class="card-title">Incident Details</div>
+    <table class="data-table">
+        <tr><th style="width:160px;">Attack Type</th><td>{{ incident.attack_type }}</td></tr>
+        <tr><th>Source IP</th><td>{{ incident.source_ip }}</td></tr>
+        <tr><th>Destination IP</th><td>{{ incident.destination_ip or '-' }}</td></tr>
+        <tr><th>Severity</th><td class="sev-{{ incident.severity | lower }}">{{ incident.severity }}</td></tr>
+        <tr><th>Description</th><td>{{ incident.description or '-' }}</td></tr>
+        <tr><th>Detected At</th><td>{{ incident.created_at }}</td></tr>
+    </table>
+</div>
+
+{% if session.role == 'soc_analyst' and incident.status in ['New', 'Investigating'] %}
+<div class="card">
+    <div class="card-title">Investigate &amp; Escalate</div>
+    <form method="POST" action="{{ url_for('investigate_incident', incident_id=incident.incident_id) }}">
+        <label style="display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px;">Investigation Notes</label>
+        <textarea name="notes" rows="3" required
+            style="width:100%; padding:10px; background:var(--input-bg, #0f1522); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; margin-bottom:14px;"
+            placeholder="e.g. Source scanned 15 ports within 5 seconds - consistent with a SYN scan.">{{ incident.notes or '' }}</textarea>
+
+        <label style="display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px;">Recommended Action</label>
+        <input type="text" name="recommendation" required value="{{ incident.recommendation or '' }}"
+            style="width:100%; padding:10px; background:var(--input-bg, #0f1522); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; margin-bottom:14px;"
+            placeholder="e.g. Block source IP via firewall">
+
+        <label style="display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px;">Confirm/Adjust Severity</label>
+        <select name="severity" style="width:100%; padding:10px; background:var(--input-bg, #0f1522); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; margin-bottom:18px;">
+            {% for level in ['Low', 'Medium', 'High', 'Critical'] %}
+            <option value="{{ level }}" {% if incident.severity == level %}selected{% endif %}>{{ level }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="go-btn" style="width:auto; padding:10px 24px; display:inline-block;">Escalate to Administrator →</button>
+    </form>
+</div>
+
+{% elif incident.status == 'Escalated' %}
+<div class="card">
+    <div class="card-title">Analyst Findings (awaiting Administrator review)</div>
+    <p style="margin-bottom:10px;"><strong>Notes:</strong> {{ incident.notes }}</p>
+    <p><strong>Recommendation:</strong> {{ incident.recommendation }}</p>
+
+    {% if session.role == 'administrator' %}
+    <div class="quick-actions" style="margin-top:18px;">
+        <form method="POST" action="{{ url_for('admin_approve_incident', incident_id=incident.incident_id) }}">
+            <button class="qa-btn" style="background:rgba(34,197,94,0.15); color:var(--green); border-color:rgba(34,197,94,0.3);">✅ Approve Action</button>
+        </form>
+        <form method="POST" action="{{ url_for('admin_reject_incident', incident_id=incident.incident_id) }}">
+            <button class="qa-btn">↩️ Send Back to Analyst</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+{% elif incident.status in ['Action Taken', 'Resolved'] %}
+<div class="card">
+    <div class="card-title">Resolution</div>
+    <p style="margin-bottom:10px;"><strong>Notes:</strong> {{ incident.notes or '-' }}</p>
+    <p style="margin-bottom:10px;"><strong>Recommendation:</strong> {{ incident.recommendation or '-' }}</p>
+    <p style="color:var(--green);"><strong>Status:</strong> {{ incident.status }} ✅</p>
+</div>
+{% endif %}
+{% endblock %}

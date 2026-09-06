@@ -1,0 +1,233 @@
+/*
+  org-page.css
+  ------------
+  Full redesign of the organization login page: a purple gradient hero
+  (Datadog-style) with the login form directly on the gradient and a
+  floating light "product preview" card, followed by light-themed
+  About/Features/Help sections. This file overrides tokens.css's dark
+  defaults for THIS PAGE ONLY (organization_login.html) - home.html and
+  student_login.html don't load this file, so they keep the original
+  dark theme untouched.
+*/
+
+html { scroll-behavior: smooth; }
+body { background: #f7f7fb; color: #1e2433; overflow-x: hidden; }
+
+/* ---------- Top nav ---------- */
+.org-navbar {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 40px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #ececf3;
+}
+.org-navbar .brand-inline { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 15px; color: #1e2433; }
+.org-navbar .nav-links a {
+    color: #6b7280; margin-left: 26px; font-size: 13px; transition: color 0.15s; text-decoration: none;
+}
+.org-navbar .nav-links a:hover { color: #1e2433; }
+.org-navbar .nav-links a.nav-cta {
+    color: #ffffff; background: #6d28d9;
+    padding: 7px 16px; border-radius: 20px;
+}
+.org-navbar .nav-links a.nav-cta:hover { background: #5b21b6; color: #fff; }
+
+/* ---------- Gradient hero ---------- */
+.gradient-hero {
+    background: linear-gradient(135deg, #2e1065 0%, #5b21b6 48%, #7c3aed 100%);
+    padding: 44px 40px 56px;
+    position: relative;
+    overflow: hidden;
+}
+.gradient-hero::before {
+    /* faint diagonal grid lines for texture, echoes the network-monitoring theme subtly */
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.035) 0, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 60px);
+    pointer-events: none;
+}
+.gradient-hero-inner {
+    position: relative; z-index: 1;
+    display: flex; gap: 60px; align-items: center; flex-wrap: wrap;
+    max-width: 1200px; margin: 0 auto;
+}
+.gradient-hero-left { flex: 1; min-width: 320px; color: #fff; }
+.gradient-hero-right { flex: 1; min-width: 340px; display: flex; justify-content: center; }
+
+.hero-eyebrow-pill {
+    display: inline-block; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 14px; border-radius: 20px; margin-bottom: 14px;
+}
+
+.gradient-hero h1.decode-text {
+    font-size: 44px; font-weight: 800; font-family: 'Consolas', 'Courier New', monospace;
+    color: #ffffff; min-height: 50px; margin-bottom: 8px; letter-spacing: 0.01em;
+}
+.gradient-hero .subhead {
+    font-size: 15.5px; line-height: 1.65; color: rgba(255,255,255,0.82);
+    max-width: 480px; margin-bottom: 20px;
+}
+
+/* Login form, directly on the gradient (Datadog puts its email field
+   right on the gradient too, rather than in a separate card) */
+.hero-login-form label {
+    display: block; font-size: 12.5px; color: rgba(255,255,255,0.75);
+    margin-bottom: 5px; margin-top: 10px;
+}
+.hero-login-form label:first-of-type { margin-top: 0; }
+.hero-login-form input {
+    width: 100%; max-width: 340px; padding: 11px 14px;
+    background: rgba(255,255,255,0.97); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px; color: #1e2433; font-size: 13.5px;
+}
+.hero-login-form input:focus { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.25); }
+.hero-login-btn {
+    max-width: 340px; width: 100%;
+    background: #ffffff; color: #5b21b6; border: none;
+    padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700;
+    margin-top: 20px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+}
+.hero-login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -6px rgba(0,0,0,0.35); }
+
+.hero-error {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    color: #fff; border-radius: 8px; padding: 9px 13px; font-size: 12.5px; margin-bottom: 12px; max-width: 340px;
+}
+.hero-footnote { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 12px; }
+.hero-footnote a { color: #fff; text-decoration: underline; }
+
+/* ---------- Floating "product preview" card ---------- */
+.preview-card {
+    background: #ffffff; border-radius: 14px; width: 100%; max-width: 460px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+    overflow: hidden; transform: rotate(0.4deg);
+}
+.preview-titlebar {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    background: #f3f4f8; border-bottom: 1px solid #ececf3;
+}
+.preview-dot { width: 9px; height: 9px; border-radius: 50%; }
+.preview-url {
+    margin-left: 10px; font-size: 11px; color: #9aa0ac; background: #fff;
+    border: 1px solid #ececf3; border-radius: 6px; padding: 3px 10px; flex: 1;
+}
+.preview-body { padding: 18px; }
+.preview-body h4 { font-size: 12.5px; color: #1e2433; margin-bottom: 12px; }
+
+.preview-stats { display: flex; gap: 8px; margin-bottom: 16px; }
+.preview-stat {
+    flex: 1; background: #f8f7fc; border: 1px solid #ececf3; border-radius: 8px; padding: 9px;
+}
+.preview-stat .p-val { font-size: 15px; font-weight: 700; color: #1e2433; }
+.preview-stat .p-lbl { font-size: 9.5px; color: #9aa0ac; margin-top: 2px; }
+
+.preview-chart {
+    display: flex; align-items: flex-end; gap: 4px; height: 54px;
+    background: #f8f7fc; border: 1px solid #ececf3; border-radius: 8px; padding: 8px; margin-bottom: 16px;
+}
+.preview-chart .bar { flex: 1; background: linear-gradient(180deg, #a78bfa, #7c3aed); border-radius: 2px; }
+
+.preview-table { width: 100%; font-size: 10.5px; border-collapse: collapse; }
+.preview-table th { text-align: left; color: #9aa0ac; font-weight: 500; padding: 4px 0; border-bottom: 1px solid #ececf3; }
+.preview-table td { padding: 6px 0; border-bottom: 1px solid #f3f4f8; color: #1e2433; }
+.preview-sev-high { color: #dc2626; font-weight: 600; }
+.preview-sev-med { color: #d97706; font-weight: 600; }
+.preview-status { background: #ecfdf3; color: #16a34a; padding: 1px 8px; border-radius: 10px; font-size: 9.5px; }
+
+.scroll-hint {
+    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; color: rgba(255,255,255,0.7); display: flex; flex-direction: column;
+    align-items: center; gap: 6px; z-index: 1;
+}
+.scroll-hint .arrow { animation: bounce-arrow 1.6s ease-in-out infinite; font-size: 14px; }
+@keyframes bounce-arrow { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+
+/* ---------- Sections below the fold (light theme) ---------- */
+#about, #features, #help { scroll-margin-top: 60px; padding-top: 44px; }
+
+/* ---------- Product demo video placeholders ---------- */
+.demo-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px; max-width: 1000px; margin: 0 auto 56px; padding: 0 20px;
+}
+.demo-card {
+    background: #ffffff; border: 1px solid #ececf3; border-radius: 14px;
+    overflow: hidden; transition: border-color 0.2s, transform 0.2s;
+}
+.demo-card:hover { border-color: #7c3aed; transform: translateY(-3px); }
+.demo-placeholder {
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, #2e1065 0%, #6d28d9 55%, #7c3aed 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+}
+.demo-play-icon {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px;
+}
+.demo-coming-soon {
+    position: absolute; bottom: 10px; right: 12px;
+    font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: rgba(255,255,255,0.75); background: rgba(0,0,0,0.25);
+    padding: 3px 9px; border-radius: 10px;
+}
+.demo-card-body { padding: 16px; }
+.demo-card-body h3 { font-size: 13.5px; margin-bottom: 4px; color: #1e2433; }
+.demo-card-body p { font-size: 12px; color: #6b7280; }
+
+.section-label { text-align: center; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8b5cf6; margin-bottom: 8px; font-weight: 600; }
+.section-title { text-align: center; font-size: 26px; font-weight: 700; margin-bottom: 28px; color: #1e2433; }
+
+.about-section { max-width: 780px; margin: 0 auto 54px; padding: 0 20px; text-align: center; }
+.about-grid p { color: #4b5165; font-size: 14.5px; line-height: 1.75; text-align: left; margin-bottom: 18px; }
+.about-grid strong { color: #1e2433; }
+
+.feature-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 18px; max-width: 1000px; margin: 0 auto 56px; padding: 0 20px;
+}
+.feature-card {
+    background: #ffffff; border: 1px solid #ececf3; border-radius: 14px; padding: 22px;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+    transition: border-color 0.2s, transform 0.2s;
+}
+.feature-card:hover { border-color: #c4b5fd; transform: translateY(-3px); }
+.feature-card .f-icon {
+    width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center;
+    justify-content: center; font-size: 17px; margin-bottom: 14px;
+}
+.feature-card h3 { font-size: 14.5px; margin-bottom: 6px; color: #1e2433; }
+.feature-card p { font-size: 12.5px; color: #6b7280; line-height: 1.5; }
+
+.help-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 18px; max-width: 900px; margin: 0 auto 56px; padding: 0 20px;
+}
+.help-card {
+    background: #ffffff; border: 1px solid #ececf3; border-radius: 14px; padding: 22px;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+    transition: border-color 0.2s, transform 0.2s;
+}
+.help-card:hover { border-color: #c4b5fd; transform: translateY(-3px); }
+.help-card .h-icon {
+    width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center;
+    justify-content: center; font-size: 16px; margin-bottom: 14px; background: rgba(124,58,237,0.1);
+}
+.help-card h3 { font-size: 14px; margin-bottom: 6px; color: #1e2433; }
+.help-card p { font-size: 12.5px; color: #6b7280; line-height: 1.55; }
+.help-card a { color: #7c3aed; }
+
+.org-footer { text-align: center; padding: 26px; color: #9aa0ac; font-size: 12.5px; border-top: 1px solid #ececf3; }
+
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 900px) {
+    .gradient-hero-inner { flex-direction: column; }
+    .preview-card { transform: none; }
+}

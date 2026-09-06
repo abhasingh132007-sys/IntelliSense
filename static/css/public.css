@@ -1,0 +1,298 @@
+/*
+  public.css
+  ----------
+  Styles for the public-facing pages (home, simulator entry) - as opposed
+  to shell.css which styles the internal dashboard sidebar layout.
+  Built on top of tokens.css variables.
+*/
+
+#bg-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.public-navbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 40px;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(6px);
+}
+.public-navbar .brand-inline {
+  display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px;
+}
+.public-navbar .nav-links a {
+  color: var(--muted);
+  margin-left: 28px;
+  font-size: 13.5px;
+  transition: color 0.15s;
+}
+.public-navbar .nav-links a:hover { color: var(--text); }
+.public-navbar .nav-links a.nav-cta {
+    color: var(--blue);
+    border: 1px solid rgba(59,130,246,0.35);
+    background: rgba(59,130,246,0.08);
+    padding: 6px 14px;
+    border-radius: 20px;
+}
+.public-navbar .nav-links a.nav-cta:hover { background: rgba(59,130,246,0.16); color: var(--blue); }
+
+/* Anchor targets need top clearance so the sticky nav doesn't cover them */
+#top, #about, #features, #org-login { scroll-margin-top: 90px; }
+
+/* ---------- About section ---------- */
+.about-section { max-width: 800px; margin: 0 auto 90px; padding: 0 20px; text-align: center; }
+.about-grid p {
+    color: var(--muted); font-size: 14.5px; line-height: 1.75;
+    text-align: left; margin-bottom: 18px;
+}
+.about-grid strong { color: var(--text); }
+
+/* ---------- Embedded organization login ---------- */
+.org-login-section { max-width: 900px; margin: 0 auto 110px; padding: 0 20px; text-align: center; }
+.embedded-login-card {
+    max-width: 380px; margin: 30px auto 0; text-align: left;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 32px;
+}
+.embedded-login-card label {
+    display: block; font-size: 12.5px; color: var(--muted);
+    margin-bottom: 6px; margin-top: 14px;
+}
+.embedded-login-card label:first-of-type { margin-top: 0; }
+.embedded-login-card input {
+    width: 100%; padding: 10px 12px; background: #0f1522;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--text); font-size: 13.5px;
+}
+.embedded-login-card input:focus { outline: none; border-color: var(--blue); }
+.embedded-login-card .login-btn {
+    width: 100%; background: var(--blue); color: white; border: none;
+    padding: 11px; border-radius: var(--radius-sm); font-size: 13.5px;
+    font-weight: 600; margin-top: 20px; cursor: pointer; transition: background 0.15s;
+}
+.embedded-login-card .login-btn:hover { background: #2563eb; }
+.embedded-login-card .error-msg {
+    background: rgba(239,68,68,0.12); color: var(--red);
+    border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-sm);
+    padding: 9px 12px; font-size: 12.5px; margin-bottom: 16px;
+}
+.embedded-login-card .footnote {
+    font-size: 11.5px; color: var(--muted); margin-top: 18px; text-align: center;
+}
+.embedded-login-card .footnote a { color: var(--blue); }
+
+.public-content { position: relative; z-index: 1; }
+
+/* ---------- Hero ---------- */
+.hero {
+  text-align: center;
+  padding: 90px 20px 60px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  border: 1px solid rgba(6,182,212,0.3);
+  background: rgba(6,182,212,0.08);
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 22px;
+}
+.hero h1.decode-text {
+  font-size: 56px;
+  font-weight: 800;
+  font-family: 'Consolas', 'Courier New', monospace;
+  letter-spacing: 0.02em;
+  background: linear-gradient(120deg, #93c5fd, #a78bfa 45%, #67e8f9);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  min-height: 68px;
+}
+.hero .tagline {
+  font-size: 17px;
+  color: var(--muted);
+  margin-top: 14px;
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.hero-scanline {
+  width: 100%;
+  max-width: 420px;
+  height: 2px;
+  margin: 26px auto 0;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  animation: scan-glow 2.4s ease-in-out infinite;
+}
+@keyframes scan-glow {
+  0%, 100% { opacity: 0.3; transform: scaleX(0.7); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+/* ---------- Mode cards ---------- */
+.mode-cards {
+  display: flex;
+  gap: 22px;
+  justify-content: center;
+  margin-top: 44px;
+  flex-wrap: wrap;
+}
+.mode-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 320px;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.mode-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.mode-card.real-time::before { background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+.mode-card.simulator::before { background: linear-gradient(90deg, var(--purple), #f472b6); }
+
+.mode-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255,255,255,0.15);
+}
+.mode-card .icon { font-size: 26px; margin-bottom: 12px; }
+.mode-card h2 { font-size: 17px; margin-bottom: 8px; }
+.mode-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+/* ---------- Feature strip ---------- */
+.section-label {
+  text-align: center;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 90px 0 8px;
+}
+.section-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 46px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto 90px;
+  padding: 0 20px;
+}
+.feature-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.feature-card:hover { border-color: var(--blue); transform: translateY(-3px); }
+.feature-card .f-icon {
+  width: 38px; height: 38px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; margin-bottom: 14px;
+  background: rgba(59,130,246,0.12);
+}
+.feature-card h3 { font-size: 14.5px; margin-bottom: 6px; }
+.feature-card p { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+/* ---------- Tech stack strip ---------- */
+.tech-strip {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  max-width: 800px;
+  margin: 0 auto 100px;
+  padding: 0 20px;
+}
+.tech-pill {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12.5px;
+  padding: 7px 16px;
+  border-radius: 20px;
+}
+
+/* ---------- Simulator attack grid ---------- */
+.sim-intro {
+  max-width: 700px;
+  margin: 0 auto 40px;
+  text-align: center;
+  padding: 0 20px;
+}
+.sim-intro h1 { font-size: 32px; margin-bottom: 12px; }
+.sim-intro p { color: var(--muted); font-size: 14.5px; line-height: 1.6; }
+
+.attack-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  max-width: 1000px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
+}
+.attack-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  cursor: pointer;
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+  position: relative;
+}
+.attack-card .a-icon { font-size: 24px; margin-bottom: 10px; display: block; }
+.attack-card h3 { font-size: 14.5px; margin-bottom: 6px; }
+.attack-card p { font-size: 12px; color: var(--muted); }
+.attack-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent, var(--blue));
+  box-shadow: 0 8px 24px -8px var(--accent, rgba(59,130,246,0.4));
+}
+
+#simulation-area {
+  max-width: 1000px;
+  margin: 0 auto 80px;
+  padding: 0 20px;
+}
+#simulation-area .sim-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+  min-height: 160px;
+}
+
+.footer {
+  position: relative; z-index: 1;
+  text-align: center;
+  padding: 24px;
+  color: var(--muted);
+  font-size: 12.5px;
+  border-top: 1px solid var(--border);
+}

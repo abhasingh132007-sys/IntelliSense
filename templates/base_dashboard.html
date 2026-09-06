@@ -1,0 +1,111 @@
+{#
+  base_dashboard.html
+  --------------------
+  Shell shared by Administrator and SOC Analyst pages. The sidebar content
+  branches on session.role so each role only sees nav items relevant to
+  them - this is the template-level equivalent of the role_required()
+  decorator in app.py (defense in depth: even if a route were reachable,
+  the nav wouldn't advertise pages that role can't use).
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}IntelliSense{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/shell.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-content.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="brand">
+        <div class="brand-icon"><img src="{{ url_for('static', filename='img/logo.svg') }}" alt="IntelliSense" style="width:22px; height:22px;"></div>
+        <div class="brand-text"><b>IntelliSense</b><span>{{ session.role | default('Organization') | replace('_', ' ') | title }}</span></div>
+    </div>
+
+    {% if session.role == 'administrator' %}
+    <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <a class="nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
+            <div class="left">📊 Dashboard</div>
+        </a>
+    </div>
+    <div class="nav-section">
+        <div class="nav-label">Security Operations</div>
+        <a class="nav-item {% if request.endpoint == 'live_monitor' %}active{% endif %}" href="{{ url_for('live_monitor') }}">
+            <div class="left">🖥️ Live Monitor</div>
+        </a>
+        <a class="nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
+            <div class="left">⬆️ Escalated Incidents</div>
+        </a>
+        <a class="nav-item {% if request.endpoint == 'blocked_ips_page' %}active{% endif %}" href="{{ url_for('blocked_ips_page') }}">
+            <div class="left">🚫 Blocked IPs</div>
+        </a>
+        <a class="nav-item {% if request.endpoint == 'logs_page' %}active{% endif %}" href="{{ url_for('logs_page') }}">
+            <div class="left">📋 Logs</div>
+        </a>
+        <a class="nav-item" href="#"><div class="left">📄 Reports</div></a>
+        <a class="nav-item" href="#"><div class="left">👥 Users</div></a>
+    </div>
+
+    {% elif session.role == 'soc_analyst' %}
+    <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <a class="nav-item {% if request.endpoint == 'analyst_dashboard' %}active{% endif %}" href="{{ url_for('analyst_dashboard') }}">
+            <div class="left">📊 Dashboard</div>
+        </a>
+    </div>
+    <div class="nav-section">
+        <div class="nav-label">Security Operations</div>
+        <a class="nav-item {% if request.endpoint == 'live_monitor' %}active{% endif %}" href="{{ url_for('live_monitor') }}">
+            <div class="left">🖥️ Live Monitor</div>
+        </a>
+        <a class="nav-item {% if request.endpoint == 'analyst_dashboard' %}active{% endif %}" href="{{ url_for('analyst_dashboard') }}">
+            <div class="left">🔔 Live Alerts</div>
+        </a>
+        <a class="nav-item {% if request.endpoint == 'blocked_ips_page' %}active{% endif %}" href="{{ url_for('blocked_ips_page') }}">
+            <div class="left">🚫 Blocked IPs</div>
+        </a>
+        <a class="nav-item {% if request.endpoint == 'logs_page' %}active{% endif %}" href="{{ url_for('logs_page') }}">
+            <div class="left">📋 Logs</div>
+        </a>
+        <a class="nav-item" href="#"><div class="left">📄 Reports</div></a>
+    </div>
+    {% endif %}
+
+    <div class="sidebar-footer">
+        <div class="mode-box">
+            <div class="label">Signed in as</div>
+            <div class="value">{{ session.username }}</div>
+            <button class="switch-btn" onclick="window.location.href='{{ url_for('logout') }}'">⏻ Log Out</button>
+        </div>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-left">
+            Role:
+            <span class="mode-pill">{{ current_mode | default('') }}</span>
+        </div>
+        <div class="topbar-right">
+            <span>🌙</span>
+            <span style="font-size:12.5px; color:var(--muted);">{{ session.username }}</span>
+            <a href="{{ url_for('logout') }}" style="font-size:12px; color:var(--muted);" title="Log out">⏻</a>
+            <div class="avatar"></div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
+        <div class="page-sub">{% block page_sub %}{% endblock %}</div>
+
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

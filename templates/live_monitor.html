@@ -1,0 +1,26 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Live Monitor{% endblock %}
+{% block page_title %}Live Monitor{% endblock %}
+{% block page_sub %}Raw packet feed captured on the monitored interface{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">
+        Live Packets
+        <span class="muted" id="packet-rate">-- pkt/s</span>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr><th>Time</th><th>Source IP</th><th>Destination IP</th><th>Protocol</th><th>Port</th><th>Flags</th><th>Size</th></tr>
+        </thead>
+        <tbody id="live-packets-body">
+            <tr><td colspan="7" style="color:var(--muted);">Loading packets...</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/live-monitor.js') }}"></script>
+{% endblock %}

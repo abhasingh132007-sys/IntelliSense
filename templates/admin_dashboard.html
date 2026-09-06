@@ -1,0 +1,77 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Administrator Dashboard{% endblock %}
+{% block page_title %}Administrator Dashboard{% endblock %}
+{% block page_sub %}Organization-wide security overview and incident approvals{% endblock %}
+
+{% block content %}
+<div class="stats-row">
+    {% for s in stats %}
+    <div class="stat-card">
+        <div class="stat-top">
+            {{ s.label }}
+            <div class="stat-icon" style="background:{{ s.bg }}; color:{{ s.color }};">{{ s.icon }}</div>
+        </div>
+        <div class="stat-value">{{ s.value }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="charts-row">
+    <div class="card">
+        <div class="card-title">Live Traffic (Packets/Second) <span class="muted">Last 3 min</span></div>
+        <canvas id="trafficChart" height="140"></canvas>
+    </div>
+    <div class="card">
+        <div class="card-title">Alerts Over Time</div>
+        <canvas id="alertsChart" height="140"></canvas>
+    </div>
+    <div class="card">
+        <div class="card-title">Top Attack Types</div>
+        <canvas id="attackDonut" height="140"></canvas>
+        <div id="attack-legend" class="legend-list"></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">
+        Escalated Incidents Awaiting Your Review
+        <span class="muted">{{ escalated_incidents | length }} pending</span>
+    </div>
+
+    {% if escalated_incidents %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Time</th><th>Attack</th><th>Source IP</th><th>Severity</th><th>Analyst Notes</th><th>Recommendation</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            {% for inc in escalated_incidents %}
+            <tr>
+                <td>{{ inc.created_at }}</td>
+                <td>{{ inc.attack_type }}</td>
+                <td>{{ inc.source_ip }}</td>
+                <td class="sev-{{ inc.severity | lower }}">{{ inc.severity }}</td>
+                <td>{{ inc.notes or '-' }}</td>
+                <td>{{ inc.recommendation or '-' }}</td>
+                <td style="white-space:nowrap;">
+                    <form method="POST" action="{{ url_for('admin_approve_incident', incident_id=inc.incident_id) }}" style="display:inline;">
+                        <button class="qa-btn" style="padding:5px 10px; font-size:11.5px; background:rgba(34,197,94,0.15); color:var(--green); border-color:rgba(34,197,94,0.3);">Approve</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_reject_incident', incident_id=inc.incident_id) }}" style="display:inline;">
+                        <button class="qa-btn" style="padding:5px 10px; font-size:11.5px;">Send Back</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--muted); padding:20px 0;">No incidents currently awaiting approval.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard-charts.js') }}"></script>
+{% endblock %}

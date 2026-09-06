@@ -1,0 +1,32 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Logs{% endblock %}
+{% block page_title %}Event Logs{% endblock %}
+{% block page_sub %}Raw system and detection engine events{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">
+        {{ logs | length }} Log Entries
+        <button class="qa-btn" id="btn-clear-logs" style="flex:none; padding:6px 14px; font-size:11.5px;">📄 Clear Logs</button>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr><th>Time</th><th>Level</th><th>Message</th></tr>
+        </thead>
+        <tbody>
+            {% for l in logs %}
+            <tr>
+                <td>{{ l.time }}</td>
+                <td class="{% if l.level == 'ALERT' %}sev-high{% elif l.level == 'WARNING' %}sev-medium{% endif %}">{{ l.level }}</td>
+                <td>{{ l.message }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quick-actions.js') }}"></script>
+{% endblock %}

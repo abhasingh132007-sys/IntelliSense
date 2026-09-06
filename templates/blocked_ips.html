@@ -1,0 +1,43 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Blocked IPs{% endblock %}
+{% block page_title %}Blocked IPs{% endblock %}
+{% block page_sub %}IPs currently blocked by the prevention engine (iptables){% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title">
+        {{ blocked_ips | length }} Blocked
+        {% if session.role == 'soc_analyst' %}
+        <span class="muted" style="font-weight:400;">View only &mdash; unblocking requires Administrator approval</span>
+        {% endif %}
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>IP Address</th><th>Reason</th><th>Blocked At</th><th>Attempts</th>
+                {% if session.role == 'administrator' %}<th></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody id="blocked-ips-body">
+            {% for b in blocked_ips %}
+            <tr data-ip="{{ b.ip }}">
+                <td>{{ b.ip }}</td>
+                <td>{{ b.reason }}</td>
+                <td>{{ b.blocked_at }}</td>
+                <td>{{ b.attempts }}</td>
+                {% if session.role == 'administrator' %}
+                <td><button class="qa-btn unblock-btn" style="padding:4px 10px; font-size:11.5px;">Unblock</button></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if session.role == 'administrator' %}
+<script src="{{ url_for('static', filename='js/blocked-ips.js') }}"></script>
+{% endif %}
+{% endblock %}
