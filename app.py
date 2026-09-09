@@ -16,7 +16,7 @@ Role-based architecture:
 from flask import Flask, render_template, jsonify, redirect, url_for, request, session, Response
 import json
 
-from modules import mock_data, capture, packet_buffer, detection, database, auth
+from modules import mock_data, capture, packet_buffer, detection, database, auth, prevention
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'intellisense-dev-key-change-in-production'
@@ -146,12 +146,29 @@ def get_admin_stats(org_id):
 @app.route('/admin/incident/<int:incident_id>/approve', methods=['POST'])
 @auth.role_required('administrator')
 def admin_approve_incident(incident_id):
-    """Administrator approves the SOC Analyst's recommended action (e.g. block IP)."""
+    """
+    Administrator approves the SOC Analyst's recommended action.
+    Actually calls the Prevention Engine to block the source IP via
+    iptables. If the firewall call fails, the incident still gets marked
+    approved, but the failure reason is stored in notes.
+    """
     user = auth.current_user()
+    incident = database.get_incident(incident_id)
+
+    result = prevention.block_ip(incident['source_ip'])
+
+    if result["success"]:
+        note_suffix = " (already blocked)" if result["already_blocked"] else " - IP blocked via iptables"
+    else:
+        note_suffix = f" - FIREWALL BLOCK FAILED: {result['error']}"
+
+    updated_notes = (incident.get('notes') or '') + note_suffix
+
     database.update_incident(
         incident_id,
         status='Action Taken',
-        administrator_id=user['user_id']
+        administrator_id=user['user_id'],
+        notes=updated_notes
     )
     return redirect(url_for('admin_dashboard'))
 
@@ -249,10 +266,30 @@ def live_monitor():
 @app.route('/blocked-ips')
 @auth.role_required('administrator', 'soc_analyst')
 def blocked_ips_page():
+    """Reads the REAL blocked IP list from iptables, cross-referenced with incidents."""
+    user = auth.current_user()
+    real_ips = prevention.list_blocked_ips()
+
+    if real_ips:
+        actioned_incidents = database.get_incidents(user['org_id'], status='Action Taken')
+        by_ip = {inc['source_ip']: inc for inc in actioned_incidents}
+
+        blocked_ips = []
+        for ip in real_ips:
+            inc = by_ip.get(ip)
+            blocked_ips.append({
+                "ip": ip,
+                "reason": inc['attack_type'] if inc else "Manually blocked",
+                "blocked_at": inc['updated_at'] if inc else "-",
+                "attempts": "-"
+            })
+    else:
+        blocked_ips = mock_data.get_blocked_ips()
+
     return render_template(
         'blocked_ips.html',
         current_mode=session['role'].upper(),
-        blocked_ips=mock_data.get_blocked_ips()
+        blocked_ips=blocked_ips
     )
 
 
@@ -315,12 +352,13 @@ def api_live_packets():
 @auth.api_role_required('administrator')
 def api_unblock_ip(ip_address):
     """
-    Unblocks an IP - Administrator only. SOC Analysts can view the blocked
-    IPs list (they need it for investigation context) but cannot act on
-    it - that would bypass the escalation/approval workflow, where actions
-    are only supposed to happen after Administrator sign-off.
+    Unblocks an IP - Administrator only.
+    Now calls the real Prevention Engine.
     """
-    return jsonify({"status": "unblocked", "ip": ip_address})
+    result = prevention.unblock_ip(ip_address)
+    if result["success"]:
+        return jsonify({"status": "unblocked", "ip": ip_address})
+    return jsonify({"status": "error", "ip": ip_address, "error": result["error"]}), 500
 
 
 @app.route('/api/clear-logs', methods=['POST'])
