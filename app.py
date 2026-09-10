@@ -379,5 +379,5 @@ def api_export_report():
 
 
 if __name__ == '__main__':
-    capture.start_capture(interface="ens33")
+    capture.start_capture(interface="ens37")
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
