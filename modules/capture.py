@@ -120,7 +120,7 @@ def _process_packet(pkt):
             )
 
 
-def start_capture(interface="ens33"):
+def start_capture(interface="ens37"):
     """
     Starts sniffing in a background thread. Call once, at app startup.
     interface: change to match your Ubuntu VM's actual NIC name (`ip a` to check).
