@@ -7,9 +7,9 @@
     <span class="hero-eyebrow">Learning Simulator</span>
     <h1 style="margin-top:16px;">See attacks. Understand defenses.</h1>
     <p>
-        Pick a scenario below. Each one walks through a predefined packet sequence,
-        explains why the detection engine flags it, and shows the exact prevention
-        action that would be applied &mdash; no real network attack required.
+        Pick a scenario below. Each one generates a real synthetic packet sequence and
+        runs it through the same detection engine used on live traffic &mdash;
+        no real network attack required.
     </p>
 </section>
 
@@ -42,6 +42,56 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sim-layout { display: flex; gap: 16px; flex-wrap: wrap; }
+    .sim-packet-log { flex: 1.3; min-width: 320px; }
+    .sim-explain { flex: 1; min-width: 280px; }
+
+    .sim-packet-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .sim-packet-table th {
+        text-align: left; color: var(--muted); font-size: 10.5px;
+        text-transform: uppercase; padding: 6px; border-bottom: 1px solid var(--border);
+    }
+    .sim-packet-table td { padding: 6px; border-bottom: 1px solid var(--border); }
+    .sim-packet-table tr.flagged { background: rgba(239,68,68,0.08); }
+    .sim-packet-table tr.flagged td:first-child { border-left: 2px solid var(--red); }
+
+    .sim-status-line {
+        display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+        font-size: 12.5px; color: var(--muted);
+    }
+    .sim-status-dot {
+        width: 8px; height: 8px; border-radius: 50%; background: var(--blue);
+        animation: sim-pulse 1s ease-in-out infinite;
+    }
+    .sim-status-dot.done { animation: none; background: var(--green); }
+    @keyframes sim-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .sim-alert-banner {
+        background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.35);
+        border-radius: 10px; padding: 14px; margin-bottom: 14px; display: none;
+    }
+    .sim-alert-banner.visible { display: block; }
+    .sim-alert-banner h4 { color: var(--red); font-size: 13.5px; margin-bottom: 4px; }
+    .sim-alert-banner p { font-size: 12px; color: var(--text); }
+
+    .sim-step-log { max-height: 260px; overflow-y: auto; font-size: 12.5px; }
+    .sim-step-log div { padding: 5px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
+    .sim-step-log div.hit { color: var(--red); font-weight: 600; }
+
+    .sim-summary {
+        margin-top: 14px; padding: 14px; border-radius: 10px;
+        background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.3);
+        display: none;
+    }
+    .sim-summary.visible { display: block; }
+    .sim-summary.not-detected {
+        background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3);
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}

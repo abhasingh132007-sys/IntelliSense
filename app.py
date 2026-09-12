@@ -16,8 +16,7 @@ Role-based architecture:
 from flask import Flask, render_template, jsonify, redirect, url_for, request, session, Response
 import json
 
-from modules import mock_data, capture, packet_buffer, detection, database, auth, prevention
-
+from modules import mock_data, capture, packet_buffer, detection, database, auth, prevention, simulator as sim_engine
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'intellisense-dev-key-change-in-production'
 
@@ -250,6 +249,19 @@ def investigate_incident(incident_id):
 def simulator():
     """Learning Simulator - Student portal."""
     return render_template('simulator.html', current_mode='STUDENT')
+
+
+@app.route('/api/simulate/<attack_type>')
+@auth.role_required('student')
+def api_simulate(attack_type):
+    """
+    Runs a synthetic attack scenario through the REAL detection engine
+    and returns the full step-by-step timeline as JSON.
+    """
+    result = sim_engine.run_scenario(attack_type)
+    if result is None:
+        return jsonify({"error": f"Unknown scenario: {attack_type}"}), 404
+    return jsonify(result)
 
 
 # ---------------------------------------------------------------------------
