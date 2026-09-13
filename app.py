@@ -16,7 +16,8 @@ Role-based architecture:
 from flask import Flask, render_template, jsonify, redirect, url_for, request, session, Response
 import json
 
-from modules import mock_data, capture, packet_buffer, detection, database, auth, prevention, simulator as sim_engine, quiz_data, learning_contentapp = Flask(__name__)
+from modules import mock_data, capture, packet_buffer, detection, database, auth, prevention, simulator as sim_engine, quiz_data, learning_content
+app = Flask(__name__)
 app.config['SECRET_KEY'] = 'intellisense-dev-key-change-in-production'
 
 database.init_db()
@@ -358,7 +359,6 @@ def module_detail_page(module_key):
     if not module:
         return redirect(url_for('learning_modules_page'))
     return render_template('module_detail.html', current_mode='STUDENT', module=module)
-
 
 # ---------------------------------------------------------------------------
 # Shared pages (Live Monitor, Alerts, Blocked IPs, Logs) - any logged-in
