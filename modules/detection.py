@@ -7,10 +7,16 @@ time window using a deque of timestamps, and fires when a threshold is
 crossed within that window.
 
 This module is deliberately standalone - it doesn't know about Scapy,
-Flask, or iptables. capture.py feeds it (src_ip, protocol, port, flags)
-from real packets; simulator.py feeds it the exact same shape of data
-from FAKE packets. Same detection logic, same guaranteed-accurate
+Flask, or iptables. capture.py feeds it real packets; simulator.py feeds
+it synthetic ones. Same detection logic, same guaranteed-accurate
 explanations in both modes.
+
+Every check accepts an optional `now` override (defaults to time.time()).
+This exists for the Learning Simulator's evasion sandbox: to show what
+happens when packets are spread out over more or less time WITHOUT
+actually making the Flask request block for real seconds, the simulator
+generates synthetic timestamps and passes them in here, rather than
+calling time.sleep() between packets.
 """
 
 import time
@@ -38,6 +44,15 @@ ICMP_THRESHOLD = 30         # ICMP packets within the window
 SSH_WINDOW = 5              # seconds
 SSH_THRESHOLD = 8           # SYN packets to port 22 within the window
 
+# Maps a simulator-friendly "check name" to its tracker/window/threshold,
+# used by get_progress() below.
+_CHECK_CONFIG = {
+    "port_scan": {"tracker": _port_scan_tracker, "window": PORT_SCAN_WINDOW, "threshold": PORT_SCAN_THRESHOLD, "distinct": True},
+    "dos": {"tracker": _dos_tracker, "window": DOS_WINDOW, "threshold": DOS_THRESHOLD, "distinct": False},
+    "icmp_flood": {"tracker": _icmp_tracker, "window": ICMP_WINDOW, "threshold": ICMP_THRESHOLD, "distinct": False},
+    "ssh_bruteforce": {"tracker": _ssh_tracker, "window": SSH_WINDOW, "threshold": SSH_THRESHOLD, "distinct": False},
+}
+
 
 def _trim(dq, window, now, key_index=None):
     """Drops entries older than `window` seconds from the left of the deque."""
@@ -49,16 +64,10 @@ def _trim(dq, window, now, key_index=None):
             break
 
 
-def check_port_scan(src_ip, protocol, port, flags=None):
-    # Only bare SYN packets are real scan probes. SYN-ACK/ACK/RST are
-    # replies (e.g. the monitored host answering each probed port) - if
-    # those were counted too, the host's own replies would look like a
-    # scan coming from itself (the false positive seen earlier, where
-    # the monitored host's own IP triggered a port-scan alert on its
-    # own responses to nmap's probes).
+def check_port_scan(src_ip, protocol, port, flags=None, now=None):
     if protocol != "TCP" or port is None or flags != "S":
         return None
-    now = time.time()
+    now = now if now is not None else time.time()
     with _lock:
         dq = _port_scan_tracker[src_ip]
         dq.append((now, port))
@@ -76,10 +85,10 @@ def check_port_scan(src_ip, protocol, port, flags=None):
     return None
 
 
-def check_dos(src_ip, protocol, port=None, flags=None):
+def check_dos(src_ip, protocol, port=None, flags=None, now=None):
     if protocol != "TCP":
         return None
-    now = time.time()
+    now = now if now is not None else time.time()
     with _lock:
         dq = _dos_tracker[src_ip]
         dq.append(now)
@@ -97,10 +106,10 @@ def check_dos(src_ip, protocol, port=None, flags=None):
     return None
 
 
-def check_icmp_flood(src_ip, protocol, port=None, flags=None):
+def check_icmp_flood(src_ip, protocol, port=None, flags=None, now=None):
     if protocol != "ICMP":
         return None
-    now = time.time()
+    now = now if now is not None else time.time()
     with _lock:
         dq = _icmp_tracker[src_ip]
         dq.append(now)
@@ -118,20 +127,16 @@ def check_icmp_flood(src_ip, protocol, port=None, flags=None):
     return None
 
 
-def check_ssh_bruteforce(src_ip, protocol, port=None, flags=None):
+def check_ssh_bruteforce(src_ip, protocol, port=None, flags=None, now=None):
     """
     SIMPLIFIED PROXY, not real brute-force detection. A real implementation
     needs to know whether each login attempt actually FAILED, which means
     parsing /var/log/auth.log - SSH traffic is encrypted, so Scapy can only
     see that a connection to port 22 happened, not whether it succeeded.
-    This check instead treats a high rate of new SYN connections to port 22
-    as a rough stand-in, since a brute-force tool does open many connections
-    quickly. Good enough for teaching the CONCEPT in the simulator; not a
-    substitute for real auth.log-based detection on production traffic.
     """
     if protocol != "TCP" or port != 22 or flags != "S":
         return None
-    now = time.time()
+    now = now if now is not None else time.time()
     with _lock:
         dq = _ssh_tracker[src_ip]
         dq.append(now)
@@ -149,14 +154,37 @@ def check_ssh_bruteforce(src_ip, protocol, port=None, flags=None):
     return None
 
 
-def analyze(src_ip, protocol, port, flags=None):
+def analyze(src_ip, protocol, port, flags=None, now=None):
     """
     Runs every check against one packet's info. Returns a list of alert
     dicts (usually empty, occasionally one - rarely more than one at once).
     """
     alerts = []
     for check in (check_port_scan, check_dos, check_icmp_flood, check_ssh_bruteforce):
-        result = check(src_ip, protocol, port, flags)
+        result = check(src_ip, protocol, port, flags, now)
         if result:
             alerts.append(result)
     return alerts
+
+
+def get_progress(check_name, src_ip, now=None):
+    """
+    Read-only peek at how close src_ip currently is to a given check's
+    threshold, WITHOUT mutating any state or triggering detection.
+    Used by the Learning Simulator to render a live "X of Y" progress bar.
+
+    Returns (current_count, threshold).
+    """
+    config = _CHECK_CONFIG.get(check_name)
+    if not config:
+        return 0, 1
+
+    now = now if now is not None else time.time()
+    with _lock:
+        dq = config["tracker"][src_ip]
+        _trim(dq, config["window"], now, key_index=0 if config["distinct"] else None)
+        if config["distinct"]:
+            current = len({p for _, p in dq})
+        else:
+            current = len(dq)
+        return current, config["threshold"]

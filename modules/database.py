@@ -86,7 +86,17 @@ def init_db():
         FOREIGN KEY (requested_by) REFERENCES users(user_id),
         FOREIGN KEY (assigned_to) REFERENCES users(user_id)
     );
-
+    CREATE TABLE IF NOT EXISTS student_progress (
+    progress_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    item_type TEXT NOT NULL,
+    item_key TEXT NOT NULL,
+    score INTEGER,
+    total INTEGER,
+    completed_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    UNIQUE(user_id, item_type, item_key)
+    );
     CREATE TABLE IF NOT EXISTS notifications (
         notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -224,3 +234,38 @@ def update_incident(incident_id, **fields):
     conn.execute(f"UPDATE incidents SET {set_clause} WHERE incident_id = ?", values)
     conn.commit()
     conn.close()
+    
+def mark_progress_complete(user_id, item_type, item_key, score=None, total=None):
+    """
+    Records a completed item for a student - a simulation scenario or a
+    learning module quiz. item_type is 'simulation' or 'module'.
+    """
+    conn = get_connection()
+    conn.execute("""
+        INSERT OR REPLACE INTO student_progress
+            (user_id, item_type, item_key, score, total, completed_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (user_id, item_type, item_key, score, total, datetime.now().isoformat(timespec="seconds")))
+    conn.commit()
+    conn.close()
+
+
+def get_student_progress(user_id, item_type=None):
+    conn = get_connection()
+    if item_type:
+        rows = conn.execute(
+            "SELECT * FROM student_progress WHERE user_id = ? AND item_type = ?",
+            (user_id, item_type)
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT * FROM student_progress WHERE user_id = ?", (user_id,)
+        ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_completed_keys(user_id, item_type):
+    """Returns just a set of item_keys completed - handy for `if key in completed` in templates."""
+    rows = get_student_progress(user_id, item_type)
+    return {r["item_key"] for r in rows}
