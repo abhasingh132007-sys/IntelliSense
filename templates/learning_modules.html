@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}IntelliSense - Learning Modules{% endblock %}
+
+{% block content %}
+
+<section class="sim-intro" style="margin-top:60px;">
+    <span class="hero-eyebrow">Learning Modules</span>
+    <h1 style="margin-top:16px;">Understand the concepts behind the attacks</h1>
+    <p>
+        Short, self-contained lessons on networking and security fundamentals &mdash;
+        with images, videos, and charts &mdash; each ending in a quick quiz.
+        Prefer to learn by doing instead? Head to the
+        <a href="{{ url_for('simulator') }}" style="color:var(--blue);">Attack Simulator</a>.
+    </p>
+</section>
+
+<div class="modules-grid">
+    {% for m in modules %}
+    <a class="module-card" href="{{ url_for('module_detail_page', module_key=m.key) }}" style="--accent:{{ m.color }};">
+        {% if m.key in completed %}<span class="module-badge">✓ Completed</span>{% endif %}
+        <div class="m-icon" style="background:{{ m.color }}22; color:{{ m.color }};">{{ m.icon }}</div>
+        <h3>{{ m.title }}</h3>
+        <p>{{ m.summary }}</p>
+    </a>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/learning.css') }}">
+{% endblock %}

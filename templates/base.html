@@ -13,8 +13,10 @@
 
     <nav class="public-navbar">
         <a href="{{ url_for('home') }}" class="brand-inline"><img src="{{ url_for('static', filename='img/logo.svg') }}" alt="IntelliSense" class="brand-logo"> IntelliSense</a>
-        <div class="nav-links">
+                <div class="nav-links">
             {% if session.username %}
+            <a href="{{ url_for('simulator') }}">Simulator</a>
+            <a href="{{ url_for('learning_modules_page') }}">Learning Modules</a>
             <span style="color: var(--muted); font-size: 13px;">{{ session.username }}</span>
             <a href="{{ url_for('logout') }}">Log Out</a>
             {% else %}

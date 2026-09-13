@@ -9,27 +9,36 @@
     <p>
         Pick a scenario below. Each one generates a real synthetic packet sequence and
         runs it through the same detection engine used on live traffic &mdash;
-        no real network attack required.
+        no real network attack required. Finish with a short quiz to lock in what you learned.
+    </p>
+    <p style="margin-top:10px;">
+        Want the concepts explained first? Visit
+        <a href="{{ url_for('learning_modules_page') }}" style="color:var(--blue);">Learning Modules</a>
+        for networking and security fundamentals with videos, images, and charts.
     </p>
 </section>
 
 <div class="attack-list">
     <div class="attack-card" data-attack="port_scan" style="--accent:#3b82f6;">
+        {% if 'port_scan' in completed %}<span class="completed-badge">✓ Done</span>{% endif %}
         <span class="a-icon">🔍</span>
         <h3>Port Scan</h3>
         <p>Attacker probes multiple ports to find open services.</p>
     </div>
     <div class="attack-card" data-attack="dos" style="--accent:#ef4444;">
+        {% if 'dos' in completed %}<span class="completed-badge">✓ Done</span>{% endif %}
         <span class="a-icon">🔥</span>
         <h3>DoS Attack</h3>
         <p>Flood of requests overwhelms the target service.</p>
     </div>
     <div class="attack-card" data-attack="ssh_bruteforce" style="--accent:#f59e0b;">
+        {% if 'ssh_bruteforce' in completed %}<span class="completed-badge">✓ Done</span>{% endif %}
         <span class="a-icon">🔑</span>
         <h3>SSH Brute Force</h3>
         <p>Repeated login attempts trying to guess credentials.</p>
     </div>
     <div class="attack-card" data-attack="icmp_flood" style="--accent:#06b6d4;">
+        {% if 'icmp_flood' in completed %}<span class="completed-badge">✓ Done</span>{% endif %}
         <span class="a-icon">📶</span>
         <h3>ICMP Flood</h3>
         <p>Excessive ping requests used to exhaust bandwidth.</p>
@@ -42,9 +51,41 @@
     </div>
 </div>
 
+<div class="sandbox-box">
+    <h3>🧪 Evasion Sandbox</h3>
+    <p class="sandbox-sub">
+        Build your own traffic pattern and see if it crosses the detection threshold.
+        Try fewer packets, or spread them out over more time &mdash; can you find where detection stops firing?
+    </p>
+
+    <div class="sandbox-controls">
+        <div class="sandbox-field">
+            <label for="sandbox-attack">Attack Type</label>
+            <select id="sandbox-attack">
+                <option value="port_scan">Port Scan</option>
+                <option value="dos">DoS Attack</option>
+                <option value="icmp_flood">ICMP Flood</option>
+                <option value="ssh_bruteforce">SSH Brute Force</option>
+            </select>
+        </div>
+        <div class="sandbox-field">
+            <label for="sandbox-count">Packet Count: <span id="sandbox-count-val" class="sandbox-range-value">15</span></label>
+            <input type="range" id="sandbox-count" min="1" max="100" value="15">
+        </div>
+        <div class="sandbox-field">
+            <label for="sandbox-spread">Spread Over (seconds): <span id="sandbox-spread-val" class="sandbox-range-value">1</span></label>
+            <input type="range" id="sandbox-spread" min="0" max="20" value="1">
+        </div>
+        <button class="sandbox-run-btn" id="sandbox-run-btn">Run Custom Attack</button>
+    </div>
+
+    <div id="sandbox-result"></div>
+</div>
+
 {% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/learning.css') }}">
 <style>
     .sim-layout { display: flex; gap: 16px; flex-wrap: wrap; }
     .sim-packet-log { flex: 1.3; min-width: 320px; }
@@ -78,7 +119,7 @@
     .sim-alert-banner h4 { color: var(--red); font-size: 13.5px; margin-bottom: 4px; }
     .sim-alert-banner p { font-size: 12px; color: var(--text); }
 
-    .sim-step-log { max-height: 260px; overflow-y: auto; font-size: 12.5px; }
+    .sim-step-log { max-height: 220px; overflow-y: auto; font-size: 12.5px; }
     .sim-step-log div { padding: 5px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
     .sim-step-log div.hit { color: var(--red); font-weight: 600; }
 
@@ -91,9 +132,13 @@
     .sim-summary.not-detected {
         background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3);
     }
+
+    #sim-quiz-container { margin-top: 20px; display: none; }
+    #sim-quiz-container.visible { display: block; }
 </style>
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
 <script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
 {% endblock %}

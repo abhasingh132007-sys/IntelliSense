@@ -16,8 +16,7 @@ Role-based architecture:
 from flask import Flask, render_template, jsonify, redirect, url_for, request, session, Response
 import json
 
-from modules import mock_data, capture, packet_buffer, detection, database, auth, prevention, simulator as sim_engine
-app = Flask(__name__)
+from modules import mock_data, capture, packet_buffer, detection, database, auth, prevention, simulator as sim_engine, quiz_data, learning_contentapp = Flask(__name__)
 app.config['SECRET_KEY'] = 'intellisense-dev-key-change-in-production'
 
 database.init_db()
@@ -248,8 +247,9 @@ def investigate_incident(incident_id):
 @auth.role_required('student')
 def simulator():
     """Learning Simulator - Student portal."""
-    return render_template('simulator.html', current_mode='STUDENT')
-
+    user = auth.current_user()
+    completed = database.get_completed_keys(user['user_id'], 'simulation')
+    return render_template('simulator.html', current_mode='STUDENT', completed=completed)
 
 @app.route('/api/simulate/<attack_type>')
 @auth.role_required('student')
@@ -262,6 +262,102 @@ def api_simulate(attack_type):
     if result is None:
         return jsonify({"error": f"Unknown scenario: {attack_type}"}), 404
     return jsonify(result)
+
+
+@app.route('/api/simulate-custom', methods=['POST'])
+@auth.role_required('student')
+def api_simulate_custom():
+    """
+    Evasion sandbox: student picks attack_type, count, and spread_seconds
+    in the request body. Lets them discover detection thresholds/windows
+    experimentally instead of being told the numbers outright.
+    """
+    payload = request.get_json(silent=True) or {}
+    attack_type = payload.get('attack_type')
+    count = payload.get('count', 10)
+    spread_seconds = payload.get('spread_seconds', 1)
+
+    try:
+        count = int(count)
+        spread_seconds = float(spread_seconds)
+    except (TypeError, ValueError):
+        return jsonify({"error": "count and spread_seconds must be numbers"}), 400
+
+    result = sim_engine.simulate_custom(attack_type, count, spread_seconds)
+    if result is None:
+        return jsonify({"error": f"Unknown attack_type: {attack_type}"}), 400
+    return jsonify(result)
+
+
+@app.route('/api/quiz/simulation/<scenario_key>')
+@auth.role_required('student')
+def api_quiz_simulation(scenario_key):
+    """Post-simulation quiz, tied to the specific scenario just run."""
+    questions = quiz_data.get_simulation_quiz(scenario_key)
+    return jsonify({"scenario": scenario_key, "questions": questions})
+
+
+@app.route('/api/quiz/module/<module_key>')
+@auth.role_required('student')
+def api_quiz_module(module_key):
+    """Standalone Learning Module quiz - general concepts, not tied to a live run."""
+    questions = quiz_data.get_module_quiz(module_key)
+    return jsonify({"module": module_key, "questions": questions})
+
+
+@app.route('/api/progress/complete', methods=['POST'])
+@auth.role_required('student')
+def api_progress_complete():
+    """
+    Records a completed simulation scenario or module quiz for the
+    logged-in student. Called by quiz.js after a quiz is submitted.
+    """
+    user = auth.current_user()
+    payload = request.get_json(silent=True) or {}
+    item_type = payload.get('item_type')
+    item_key = payload.get('item_key')
+    score = payload.get('score')
+    total = payload.get('total')
+
+    if item_type not in ('simulation', 'module') or not item_key:
+        return jsonify({"error": "item_type must be 'simulation' or 'module', and item_key is required"}), 400
+
+    database.mark_progress_complete(user['user_id'], item_type, item_key, score=score, total=total)
+    return jsonify({"status": "recorded"})
+
+
+@app.route('/api/progress')
+@auth.role_required('student')
+def api_progress():
+    """Returns the logged-in student's full progress - used to render completion badges."""
+    user = auth.current_user()
+    return jsonify(database.get_student_progress(user['user_id']))
+
+
+# ---------------------------------------------------------------------------
+# Learning Modules hub
+# ---------------------------------------------------------------------------
+
+@app.route('/learn')
+@auth.role_required('student')
+def learning_modules_page():
+    user = auth.current_user()
+    completed = database.get_completed_keys(user['user_id'], 'module')
+    return render_template(
+        'learning_modules.html',
+        current_mode='STUDENT',
+        modules=learning_content.get_all_modules(),
+        completed=completed
+    )
+
+
+@app.route('/learn/<module_key>')
+@auth.role_required('student')
+def module_detail_page(module_key):
+    module = learning_content.get_module(module_key)
+    if not module:
+        return redirect(url_for('learning_modules_page'))
+    return render_template('module_detail.html', current_mode='STUDENT', module=module)
 
 
 # ---------------------------------------------------------------------------
