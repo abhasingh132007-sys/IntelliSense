@@ -1,0 +1,121 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - {{ module.title }}{% endblock %}
+{% block page_title %}{{ module.icon }} {{ module.title }}{% endblock %}
+{% block page_sub %}{{ module.summary }}{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="module-content-inline">
+        {% for section in module.sections %}
+        <div class="module-section">
+            {% if section.type == 'text' %}
+                <h3>{{ section.heading }}</h3>
+                <p>{{ section.body }}</p>
+
+            {% elif section.type == 'image' %}
+                <div class="module-media-placeholder image-type">
+                    <span class="module-media-icon">🖼️</span>
+                </div>
+                <p class="module-media-caption">{{ section.caption }}</p>
+
+            {% elif section.type == 'video' %}
+                <div class="module-media-placeholder">
+                    <span class="module-media-icon">▶</span>
+                </div>
+                <p class="module-media-caption">{{ section.caption }} &mdash; <em>video coming soon</em></p>
+
+            {% elif section.type == 'example' %}
+                <div class="example-box">
+                    <div class="example-box-header">
+                        <span class="example-icon">{{ section.icon or '💡' }}</span>
+                        <h4>{{ section.heading }}</h4>
+                    </div>
+                    <p>{{ section.body }}</p>
+                    {% if section.caption %}
+                    <div class="example-media-placeholder">
+                        <span class="module-media-icon">🖼️</span>
+                        <span class="example-media-caption">{{ section.caption }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+            {% elif section.type == 'chart' %}
+                <h3>{{ section.heading }}</h3>
+                <div class="module-chart-box">
+                    <canvas class="module-chart-canvas"
+                            data-chart-type="{{ section.chart_type }}"
+                            data-labels="{{ section.labels | tojson | forceescape }}"
+                            data-values="{{ section['values'] | tojson | forceescape }}"
+                            data-colors="{{ (section.colors or []) | tojson | forceescape }}"
+                            height="220"></canvas>
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">📝 Check Your Understanding</div>
+    <div id="module-quiz-container"></div>
+</div>
+
+<div class="module-nav-footer">
+    <a href="{{ url_for('learning_modules_page') }}">&larr; All Modules</a>
+    <a href="{{ url_for('simulator') }}">Try it in the Simulator &rarr;</a>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/learning.css') }}">
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+<script>
+    document.querySelectorAll('.module-chart-canvas').forEach(canvas => {
+        const type = canvas.dataset.chartType;
+        const labels = JSON.parse(canvas.dataset.labels);
+        const values = JSON.parse(canvas.dataset.values);
+        const colors = JSON.parse(canvas.dataset.colors);
+        const palette = colors.length ? colors : ['#3b82f6', '#8b5cf6', '#ef4444', '#f59e0b', '#22c55e', '#06b6d4'];
+
+        new Chart(canvas, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{ data: values, backgroundColor: labels.map((_, i) => palette[i % palette.length]), borderWidth: 0 }]
+            },
+            options: {
+                plugins: { legend: { display: type === 'doughnut' || type === 'pie', labels: { color: '#9ca3af' } } },
+                scales: type === 'bar' ? {
+                    x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                } : {}
+            }
+        });
+    });
+
+    (async function loadModuleQuiz() {
+        const container = document.getElementById('module-quiz-container');
+        try {
+            const res = await fetch('/api/quiz/module/{{ module.key }}');
+            const data = await res.json();
+            if (!data.questions || data.questions.length === 0) {
+                container.innerHTML = '<p style="color:var(--muted);">No quiz available for this module yet.</p>';
+                return;
+            }
+            IntelliQuiz.render(container, data.questions, {
+                itemType: 'module',
+                itemKey: '{{ module.key }}'
+            });
+        } catch (err) {
+            console.error('Failed to load module quiz:', err);
+        }
+    })();
+</script>
+{% endblock %}

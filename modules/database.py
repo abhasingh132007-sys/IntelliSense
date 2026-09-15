@@ -264,6 +264,13 @@ def get_student_progress(user_id, item_type=None):
     conn.close()
     return [dict(r) for r in rows]
 
+def get_progress_map(user_id, item_type):
+    """
+    Returns {item_key: {"score": int, "total": int}} for completed items -
+    used to show an actual "2/3" badge on a card instead of just a checkmark.
+    """
+    rows = get_student_progress(user_id, item_type)
+    return {r["item_key"]: {"score": r["score"], "total": r["total"]} for r in rows}
 
 def get_completed_keys(user_id, item_type):
     """Returns just a set of item_keys completed - handy for `if key in completed` in templates."""

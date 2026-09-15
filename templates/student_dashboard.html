@@ -1,0 +1,120 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - My Dashboard{% endblock %}
+{% block page_title %}Welcome back{% endblock %}
+{% block page_sub %}Your learning progress across the Attack Simulator and Learning Modules{% endblock %}
+
+{% block content %}
+
+<div class="stats-row">
+    {% for s in stats %}
+    <div class="stat-card">
+        <div class="stat-top">
+            {{ s.label }}
+            <div class="stat-icon" style="background:{{ s.bg }}; color:{{ s.color }};">{{ s.icon }}</div>
+        </div>
+        <div class="stat-value">{{ s.value }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="charts-row" style="grid-template-columns: 1fr 1fr;">
+    <a class="card" href="{{ url_for('simulator') }}" style="text-decoration:none; color:inherit; display:block;">
+        <div class="card-title">🎯 Attack Simulator</div>
+        <p style="color:var(--muted); font-size:13px; line-height:1.6;">
+            Run real synthetic attacks through the live detection engine, watch the threshold
+            progress bar fill in real time, and try the Evasion Sandbox to find where detection
+            starts and stops firing.
+        </p>
+    </a>
+    <a class="card" href="{{ url_for('learning_modules_page') }}" style="text-decoration:none; color:inherit; display:block;">
+        <div class="card-title">📚 Learning Modules</div>
+        <p style="color:var(--muted); font-size:13px; line-height:1.6;">
+            Four short lessons on networking, IDS/IPS, common attacks, and firewalls &mdash;
+            with images, videos, and charts, each ending in a quick knowledge check.
+        </p>
+    </a>
+</div>
+
+{% if breakdown %}
+<div class="card">
+    <div class="card-title">📊 Performance Analysis</div>
+    <p style="color:var(--muted); font-size:12.5px; margin-bottom:14px;">
+        Your quiz score on each completed item, lowest first &mdash; a quick way to spot what's worth revisiting.
+    </p>
+    <canvas id="performance-chart" height="90"></canvas>
+
+    {% if needs_review %}
+    <div class="quiz-analysis" style="margin-top:18px;">
+        <div class="qa-headline needs-review">📖 Worth revisiting (scored under 70%)</div>
+        <ul>
+            {% for b in needs_review %}
+            <li><span class="qa-icon">⚠️</span><span>{{ b.label }} ({{ 'Simulation Quiz' if b.type == 'simulation' else 'Module Quiz' }}) &mdash; {{ b.pct }}%</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-title">Recent Activity</div>
+    {% if recent %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Type</th><th>Item</th><th>Score</th><th>Completed</th></tr>
+        </thead>
+        <tbody>
+            {% for r in recent %}
+            <tr>
+                <td>{{ 'Simulation' if r.item_type == 'simulation' else 'Module Quiz' }}</td>
+                <td>{{ r.item_key | replace('_', ' ') | title }}</td>
+                <td>{% if r.score is not none %}{{ r.score }} / {{ r.total }}{% else %}-{% endif %}</td>
+                <td>{{ r.completed_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--muted); padding:16px 0;">
+        Nothing completed yet &mdash; head to the
+        <a href="{{ url_for('simulator') }}" style="color:var(--blue);">Attack Simulator</a>
+        or <a href="{{ url_for('learning_modules_page') }}" style="color:var(--blue);">Learning Modules</a>
+        to get started.
+    </p>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/learning.css') }}">
+{% endblock %}
+
+{% block scripts %}
+{% if breakdown %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+    const breakdown = {{ breakdown | tojson }};
+    new Chart(document.getElementById('performance-chart'), {
+        type: 'bar',
+        data: {
+            labels: breakdown.map(b => b.label),
+            datasets: [{
+                data: breakdown.map(b => b.pct),
+                backgroundColor: breakdown.map(b => b.pct >= 80 ? '#22c55e' : b.pct >= 50 ? '#f59e0b' : '#ef4444'),
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { min: 0, max: 100, ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#9ca3af' }, grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

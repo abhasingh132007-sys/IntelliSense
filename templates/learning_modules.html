@@ -1,28 +1,32 @@
-{% extends "base.html" %}
+{% extends "base_dashboard.html" %}
+
 {% block title %}IntelliSense - Learning Modules{% endblock %}
+{% block page_title %}Learning Modules{% endblock %}
+{% block page_sub %}Networking and security fundamentals, with images, videos, charts, and worked examples{% endblock %}
 
 {% block content %}
 
-<section class="sim-intro" style="margin-top:60px;">
-    <span class="hero-eyebrow">Learning Modules</span>
-    <h1 style="margin-top:16px;">Understand the concepts behind the attacks</h1>
-    <p>
-        Short, self-contained lessons on networking and security fundamentals &mdash;
-        with images, videos, and charts &mdash; each ending in a quick quiz.
-        Prefer to learn by doing instead? Head to the
-        <a href="{{ url_for('simulator') }}" style="color:var(--blue);">Attack Simulator</a>.
-    </p>
-</section>
+<div class="card">
+    <div class="card-title">
+        4 Modules
+        <a href="{{ url_for('simulator') }}" class="muted" style="color:var(--blue); font-weight:400;">Prefer to learn by doing? Try the Simulator &rarr;</a>
+    </div>
 
-<div class="modules-grid">
-    {% for m in modules %}
-    <a class="module-card" href="{{ url_for('module_detail_page', module_key=m.key) }}" style="--accent:{{ m.color }};">
-        {% if m.key in completed %}<span class="module-badge">✓ Completed</span>{% endif %}
-        <div class="m-icon" style="background:{{ m.color }}22; color:{{ m.color }};">{{ m.icon }}</div>
-        <h3>{{ m.title }}</h3>
-        <p>{{ m.summary }}</p>
-    </a>
-    {% endfor %}
+    <div class="modules-grid">
+        {% for m in modules %}
+        <a class="module-card" href="{{ url_for('module_detail_page', module_key=m.key) }}" style="--accent:{{ m.color }};">
+            {% if m.key in completed and scores.get(m.key) %}
+                <span class="module-badge">{{ scores[m.key].score }}/{{ scores[m.key].total }} &mdash; Completed</span>
+            {% elif m.key in completed %}
+                <span class="module-badge">✓ Completed</span>
+            {% endif %}
+            <div class="m-icon" style="background:{{ m.color }}22; color:{{ m.color }};">{{ m.icon }}</div>
+            <h3>{{ m.title }}</h3>
+            <p>{{ m.summary }}</p>
+            <span class="quiz-included-tag">📝 {{ m.quiz_count }} question{{ 's' if m.quiz_count != 1 else '' }}</span>
+        </a>
+        {% endfor %}
+    </div>
 </div>
 
 {% endblock %}

@@ -3,11 +3,13 @@ learning_content.py
 ---------------------
 Content for the Learning Modules hub - the general cybersecurity education
 section, separate from the attack simulator. Each module has ordered
-sections (text, image placeholder, video placeholder, or a chart spec),
-followed by a quiz (see quiz_data.py's MODULE_QUIZZES, keyed the same way).
+sections (text, image, video, example, or chart), followed by a quiz
+(see quiz_data.py's MODULE_QUIZZES, keyed the same way).
 
-Images/videos are placeholders for now - swap the placeholder sections
-for real asset URLs once you have them, the template doesn't need to change.
+Images/videos are placeholders - swap for real asset URLs once you have
+them, the template doesn't need to change. "example" sections are real
+worked examples (actual commands/output) tied directly to what students
+see in the simulator, not generic filler.
 """
 
 MODULES = [
@@ -27,6 +29,14 @@ MODULES = [
              "body": "An IP address gets data to the right DEVICE, but a port number gets it "
                       "to the right SERVICE on that device. Port 22 is SSH, port 80 is HTTP, "
                       "port 443 is HTTPS. This is exactly what a port scan is probing for."},
+            {"type": "example", "icon": "💻",
+             "heading": "Example: Looking at a real connection",
+             "body": "When your browser loads a website, it opens a TCP connection FROM your "
+                      "computer's IP on a random high port (e.g. 51342) TO the server's IP on "
+                      "port 443 (HTTPS). Try it yourself: run `netstat -an` on your machine and "
+                      "look for lines showing ESTABLISHED connections - you'll see exactly this "
+                      "src-IP:port -> dst-IP:port pattern.",
+             "caption": "netstat output showing active connections by IP:port pairs"},
             {"type": "chart", "chart_type": "bar", "heading": "Common Ports and Their Services",
              "labels": ["21", "22", "80", "443", "3306"],
              "values": [1, 1, 1, 1, 1],
@@ -57,6 +67,15 @@ MODULES = [
                       "IntelliSense's SOC Analyst investigates and recommends; the Administrator "
                       "reviews and approves before anything actually gets blocked - a real-world "
                       "pattern used in professional security operations centers."},
+            {"type": "example", "icon": "🔍",
+             "heading": "Example: A real escalation in IntelliSense",
+             "body": "A port scan from 203.0.113.50 is detected. It appears on the SOC Analyst's "
+                      "dashboard with status 'New'. The Analyst opens it, writes the note "
+                      "\"10 ports scanned in 5s, no legitimate reason found\", recommends "
+                      "\"Block source IP\", and escalates. The Administrator sees it under "
+                      "'Escalated Incidents', reviews the note, and clicks Approve - only then "
+                      "does prevention.py actually run the iptables command.",
+             "caption": "The incident's status field moving through New → Investigating → Escalated → Action Taken"},
             {"type": "video", "caption": "A SOC Analyst investigating and escalating a live incident"}
         ]
     },
@@ -71,6 +90,13 @@ MODULES = [
              "body": "Before attacking, attackers often scan for open ports to find running "
                       "services and known vulnerabilities. It's not damaging by itself, but it's "
                       "usually the first step of a larger attack."},
+            {"type": "example", "icon": "⌨️",
+             "heading": "Example: Running a real port scan",
+             "body": "On Kali Linux, `sudo nmap -sS 192.168.1.10` sends a bare SYN packet to "
+                      "each of the top 1000 ports. Our own simulator does exactly this same "
+                      "pattern synthetically - 10+ distinct ports contacted within 5 seconds "
+                      "is what detection.py's check_port_scan() looks for.",
+             "caption": "nmap -sS output listing open/closed/filtered ports"},
             {"type": "chart", "chart_type": "doughnut", "heading": "Attack Types We Detect",
              "labels": ["Port Scan", "DoS Attempt", "ICMP Flood", "SSH Brute Force"],
              "values": [35, 25, 20, 20],
@@ -83,6 +109,13 @@ MODULES = [
              "body": "Automated tools try many username/password combinations rapidly, hoping "
                       "one works. Real detection needs to see actual failed logins (from server "
                       "logs); our simulator uses a simplified connection-rate proxy instead."},
+            {"type": "example", "icon": "🔑",
+             "heading": "Example: hydra brute-forcing SSH",
+             "body": "`hydra -l admin -P wordlist.txt ssh://192.168.1.10` tries every password "
+                      "in wordlist.txt against the 'admin' account. Each attempt opens a new "
+                      "TCP connection to port 22 - 8 or more within 5 seconds is what our "
+                      "simplified check_ssh_bruteforce() proxy watches for.",
+             "caption": "hydra output showing rapid login attempts against SSH"},
             {"type": "video", "caption": "Running an ICMP flood and watching the alert fire"}
         ]
     },
@@ -106,6 +139,13 @@ MODULES = [
              "body": "When an Administrator approves an incident, prevention.py runs "
                       "iptables -A INPUT -s <ip> -j DROP - turning a human decision into a "
                       "real kernel-level block, instantly."},
+            {"type": "example", "icon": "🚫",
+             "heading": "Example: Checking a block yourself",
+             "body": "After IntelliSense blocks an IP, run `sudo iptables -L INPUT -n` on the "
+                      "Ubuntu server - you'll see a line like `DROP  all  --  203.0.113.50  "
+                      "0.0.0.0/0`. From that point on, every packet from that IP is silently "
+                      "discarded before it ever reaches your application.",
+             "caption": "iptables -L INPUT -n showing an active DROP rule"},
             {"type": "video", "caption": "Watching a live iptables block happen after approval"}
         ]
     }

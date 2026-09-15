@@ -73,14 +73,31 @@
         </a>
         <a class="nav-item" href="#"><div class="left">📄 Reports</div></a>
     </div>
+        {% elif session.role == 'student' %}
+    <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <a class="nav-item {% if request.endpoint == 'student_dashboard' %}active{% endif %}" href="{{ url_for('student_dashboard') }}">
+            <div class="left">📊 Dashboard</div>
+        </a>
+    </div>
+    <div class="nav-section">
+        <div class="nav-label">Learning</div>
+        <a class="nav-item {% if request.endpoint == 'simulator' %}active{% endif %}" href="{{ url_for('simulator') }}">
+            <div class="left">🎯 Attack Simulator</div>
+        </a>
+        <a class="nav-item {% if request.endpoint in ['learning_modules_page', 'module_detail_page'] %}active{% endif %}" href="{{ url_for('learning_modules_page') }}">
+            <div class="left">📚 Learning Modules</div>
+        </a>
+    </div>
+    {% endif %}
+    
     {% endif %}
 
     <div class="sidebar-footer">
         <div class="mode-box">
             <div class="label">Signed in as</div>
             <div class="value">{{ session.username }}</div>
-            <button class="switch-btn" onclick="window.location.href='{{ url_for('logout') }}'">Log Out</button>
-        </div>
+            <a class="switch-btn" href="{{ url_for('logout') }}" style="display:block; text-align:center; text-decoration:none;">Log Out</a>        </div>
     </div>
 </div>
 

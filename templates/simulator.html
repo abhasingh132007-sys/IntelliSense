@@ -1,85 +1,143 @@
-{% extends "base.html" %}
-{% block title %}IntelliSense - Learning Simulator{% endblock %}
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Simulator{% endblock %}
+{% block page_title %}Simulator{% endblock %}
+{% block page_sub %}Run real attack scenarios against a live detection engine, or learn the concepts first{% endblock %}
 
 {% block content %}
 
-<section class="sim-intro" style="margin-top:60px;">
-    <span class="hero-eyebrow">Learning Simulator</span>
-    <h1 style="margin-top:16px;">See attacks. Understand defenses.</h1>
-    <p>
-        Pick a scenario below. Each one generates a real synthetic packet sequence and
-        runs it through the same detection engine used on live traffic &mdash;
-        no real network attack required. Finish with a short quiz to lock in what you learned.
-    </p>
-    <p style="margin-top:10px;">
-        Want the concepts explained first? Visit
-        <a href="{{ url_for('learning_modules_page') }}" style="color:var(--blue);">Learning Modules</a>
-        for networking and security fundamentals with videos, images, and charts.
-    </p>
-</section>
+<div class="tab-bar">
+    <button class="tab-btn active" data-tab="simulator">🎯 Simulator Dashboard</button>
+    <button class="tab-btn" data-tab="learn">📚 Learning Modules</button>
+</div>
 
-<div class="attack-list">
-    <div class="attack-card" data-attack="port_scan" style="--accent:#3b82f6;">
-        {% if 'port_scan' in completed %}<span class="completed-badge">✓ Done</span>{% endif %}
-        <span class="a-icon">🔍</span>
-        <h3>Port Scan</h3>
-        <p>Attacker probes multiple ports to find open services.</p>
-    </div>
-    <div class="attack-card" data-attack="dos" style="--accent:#ef4444;">
-        {% if 'dos' in completed %}<span class="completed-badge">✓ Done</span>{% endif %}
-        <span class="a-icon">🔥</span>
-        <h3>DoS Attack</h3>
-        <p>Flood of requests overwhelms the target service.</p>
-    </div>
-    <div class="attack-card" data-attack="ssh_bruteforce" style="--accent:#f59e0b;">
-        {% if 'ssh_bruteforce' in completed %}<span class="completed-badge">✓ Done</span>{% endif %}
-        <span class="a-icon">🔑</span>
-        <h3>SSH Brute Force</h3>
-        <p>Repeated login attempts trying to guess credentials.</p>
-    </div>
-    <div class="attack-card" data-attack="icmp_flood" style="--accent:#06b6d4;">
-        {% if 'icmp_flood' in completed %}<span class="completed-badge">✓ Done</span>{% endif %}
-        <span class="a-icon">📶</span>
-        <h3>ICMP Flood</h3>
-        <p>Excessive ping requests used to exhaust bandwidth.</p>
+<!-- ================= TAB 1: Simulator Dashboard ================= -->
+<div class="tab-panel" id="tab-simulator">
+    <div class="sim-grid-layout">
+
+        <div class="sim-left-col">
+            <div class="card">
+                <div class="card-title">Choose an Attack</div>
+                <div class="attack-grid-compact">
+                    <div class="attack-card-compact" data-attack="port_scan" style="--accent:#3b82f6;">
+                        {% if 'port_scan' in completed %}<span class="completed-badge">✓</span>{% endif %}
+                        <span class="a-icon">🔍</span>
+                        <h3>Port Scan</h3>
+                        <p>Probes multiple ports.</p>
+                        <button class="run-btn">Run</button>
+                    </div>
+                    <div class="attack-card-compact" data-attack="dos" style="--accent:#ef4444;">
+                        {% if 'dos' in completed %}<span class="completed-badge">✓</span>{% endif %}
+                        <span class="a-icon">🔥</span>
+                        <h3>DoS Attack</h3>
+                        <p>Floods a target service.</p>
+                        <button class="run-btn">Run</button>
+                    </div>
+                    <div class="attack-card-compact" data-attack="ssh_bruteforce" style="--accent:#f59e0b;">
+                        {% if 'ssh_bruteforce' in completed %}<span class="completed-badge">✓</span>{% endif %}
+                        <span class="a-icon">🔑</span>
+                        <h3>SSH Brute Force</h3>
+                        <p>Repeated login attempts.</p>
+                        <button class="run-btn">Run</button>
+                    </div>
+                    <div class="attack-card-compact" data-attack="icmp_flood" style="--accent:#06b6d4;">
+                        {% if 'icmp_flood' in completed %}<span class="completed-badge">✓</span>{% endif %}
+                        <span class="a-icon">📶</span>
+                        <h3>ICMP Flood</h3>
+                        <p>Excessive ping requests.</p>
+                        <button class="run-btn">Run</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card sandbox-card-compact">
+                <div class="card-title">🧪 Evasion Sandbox</div>
+                <p class="sandbox-sub">Build your own pattern and see if it crosses the threshold.</p>
+
+                <div class="sandbox-field">
+                    <label for="sandbox-attack">Attack Type</label>
+                    <select id="sandbox-attack">
+                        <option value="port_scan">Port Scan</option>
+                        <option value="dos">DoS Attack</option>
+                        <option value="icmp_flood">ICMP Flood</option>
+                        <option value="ssh_bruteforce">SSH Brute Force</option>
+                    </select>
+                </div>
+                <div class="sandbox-field">
+                    <label for="sandbox-count">Packet Count: <span id="sandbox-count-val" class="sandbox-range-value">15</span></label>
+                    <input type="range" id="sandbox-count" min="1" max="100" value="15">
+                </div>
+                <div class="sandbox-field">
+                    <label for="sandbox-spread">Spread Over (s): <span id="sandbox-spread-val" class="sandbox-range-value">1</span></label>
+                    <input type="range" id="sandbox-spread" min="0" max="20" value="1">
+                </div>
+                <button class="sandbox-run-btn" id="sandbox-run-btn" style="width:100%;">Run Custom Attack</button>
+            </div>
+        </div>
+
+        <div class="sim-right-col">
+            <div class="card sim-monitor-card">
+                <div class="card-title">
+                    🖥️ Live Monitor
+                    <span class="sim-live-status" id="sim-live-status">Idle</span>
+                </div>
+
+                <div class="sim-progress-wrap">
+                    <div class="sim-progress-label">
+                        <span>Detection threshold progress</span>
+                        <span id="sim-progress-text">0 / -</span>
+                    </div>
+                    <div class="sim-progress-track">
+                        <div class="sim-progress-fill" id="sim-progress-fill"></div>
+                    </div>
+                </div>
+
+                <div id="sim-alert-banner" class="sim-alert-banner"></div>
+
+                <div class="sim-monitor-scroll">
+                    <table class="sim-packet-table">
+                        <thead>
+                            <tr><th>#</th><th>Src IP</th><th>Proto</th><th>Port</th><th>Flags</th></tr>
+                        </thead>
+                        <tbody id="sim-packet-body">
+                            <tr><td colspan="5" style="color:var(--muted); text-align:center; padding:20px;">
+                                No traffic yet - run an attack or the sandbox to see live packets here.
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="sim-summary" id="sim-summary"></div>
+                <div id="sim-quiz-container"></div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<div id="simulation-area">
-    <div class="sim-box">
-        <p style="color:var(--muted);">Select an attack above to begin the simulation.</p>
+<!-- ================= TAB 2: Learning Modules ================= -->
+<div class="tab-panel hidden" id="tab-learn">
+    <div class="card">
+        <div class="card-title">Learning Modules</div>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">
+            Short lessons on networking and security fundamentals - each ends in a quick quiz.
+        </p>
+        <div class="modules-grid-compact">
+            {% for m in modules %}
+            <a class="module-card-compact" href="{{ url_for('module_detail_page', module_key=m.key) }}" style="--accent:{{ m.color }};">
+                {% if m.key in modules_completed and modules_scores.get(m.key) %}
+                    <span class="completed-badge module-score-badge">{{ modules_scores[m.key].score }}/{{ modules_scores[m.key].total }}</span>
+                {% elif m.key in modules_completed %}
+                    <span class="completed-badge">✓</span>
+                {% endif %}
+                <div class="m-icon" style="background:{{ m.color }}22; color:{{ m.color }};">{{ m.icon }}</div>
+                <h3>{{ m.title }}</h3>
+                <p>{{ m.summary }}</p>
+                <p class="module-quiz-count">📝 {{ m.quiz_count }} question{{ 's' if m.quiz_count != 1 else '' }}</p>
+            </a>
+            {% endfor %}
+        </div>
     </div>
-</div>
-
-<div class="sandbox-box">
-    <h3>🧪 Evasion Sandbox</h3>
-    <p class="sandbox-sub">
-        Build your own traffic pattern and see if it crosses the detection threshold.
-        Try fewer packets, or spread them out over more time &mdash; can you find where detection stops firing?
-    </p>
-
-    <div class="sandbox-controls">
-        <div class="sandbox-field">
-            <label for="sandbox-attack">Attack Type</label>
-            <select id="sandbox-attack">
-                <option value="port_scan">Port Scan</option>
-                <option value="dos">DoS Attack</option>
-                <option value="icmp_flood">ICMP Flood</option>
-                <option value="ssh_bruteforce">SSH Brute Force</option>
-            </select>
-        </div>
-        <div class="sandbox-field">
-            <label for="sandbox-count">Packet Count: <span id="sandbox-count-val" class="sandbox-range-value">15</span></label>
-            <input type="range" id="sandbox-count" min="1" max="100" value="15">
-        </div>
-        <div class="sandbox-field">
-            <label for="sandbox-spread">Spread Over (seconds): <span id="sandbox-spread-val" class="sandbox-range-value">1</span></label>
-            <input type="range" id="sandbox-spread" min="0" max="20" value="1">
-        </div>
-        <button class="sandbox-run-btn" id="sandbox-run-btn">Run Custom Attack</button>
-    </div>
-
-    <div id="sandbox-result"></div>
 </div>
 
 {% endblock %}
@@ -87,54 +145,99 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/learning.css') }}">
 <style>
-    .sim-layout { display: flex; gap: 16px; flex-wrap: wrap; }
-    .sim-packet-log { flex: 1.3; min-width: 320px; }
-    .sim-explain { flex: 1; min-width: 280px; }
+    /* ---------- Tabs ---------- */
+    .tab-bar { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
+    .tab-btn {
+        background: none; border: none; color: var(--muted); font-size: 13.5px;
+        padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+    .tab-panel.hidden { display: none; }
 
+    /* ---------- Two-column layout, no page-level scroll ---------- */
+    .sim-grid-layout {
+        display: grid; grid-template-columns: 360px 1fr; gap: 16px;
+        align-items: start;
+    }
+    @media (max-width: 950px) { .sim-grid-layout { grid-template-columns: 1fr; } }
+
+    .sim-left-col { display: flex; flex-direction: column; gap: 16px; }
+
+    .attack-grid-compact { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .attack-card-compact {
+        position: relative; background: #0f1522; border: 1px solid var(--border);
+        border-radius: 10px; padding: 12px; text-align: left;
+    }
+    .attack-card-compact .a-icon { font-size: 18px; display: block; margin-bottom: 4px; }
+    .attack-card-compact h3 { font-size: 12.5px; margin-bottom: 2px; }
+    .attack-card-compact p { font-size: 10.5px; color: var(--muted); margin-bottom: 8px; }
+    .attack-card-compact .completed-badge {
+        position: absolute; top: 8px; right: 8px; font-size: 10px; color: var(--green);
+        background: rgba(34,197,94,0.15); padding: 1px 6px; border-radius: 8px;
+    }
+    .run-btn {
+        width: 100%; background: var(--accent, var(--blue)); color: #fff; border: none;
+        padding: 6px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer;
+    }
+    .run-btn:hover { filter: brightness(1.1); }
+
+    .sandbox-card-compact .sandbox-sub { font-size: 11.5px; color: var(--muted); margin-bottom: 12px; }
+    .sandbox-card-compact .sandbox-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+    .sandbox-card-compact .sandbox-field label { font-size: 11px; color: var(--muted); }
+    .sandbox-card-compact select, .sandbox-card-compact input[type="range"] { width: 100%; }
+    .sandbox-card-compact select {
+        background: #0f1522; border: 1px solid var(--border); color: var(--text);
+        padding: 7px 9px; border-radius: 7px; font-size: 12.5px;
+    }
+
+    /* ---------- Live Monitor (persistent, fixed-height, internal scroll only) ---------- */
+    .sim-monitor-card { display: flex; flex-direction: column; height: calc(100vh - 210px); min-height: 480px; overflow-y: auto; }
+    .sim-live-status {
+        font-size: 10.5px; font-weight: 700; color: var(--muted);
+        background: rgba(255,255,255,0.06); padding: 2px 9px; border-radius: 10px; margin-left: auto;
+    }
+    .sim-live-status.running { color: var(--blue); background: rgba(59,130,246,0.15); }
+    .sim-live-status.done { color: var(--green); background: rgba(34,197,94,0.15); }
+
+    .sim-progress-wrap { margin-bottom: 10px; flex-shrink: 0; }
+    .sim-alert-banner { flex-shrink: 0; }
+
+    .sim-monitor-scroll { flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; }
     .sim-packet-table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .sim-packet-table th {
-        text-align: left; color: var(--muted); font-size: 10.5px;
-        text-transform: uppercase; padding: 6px; border-bottom: 1px solid var(--border);
+        position: sticky; top: 0; background: #0f1522; text-align: left; color: var(--muted);
+        font-size: 10.5px; text-transform: uppercase; padding: 7px 8px; border-bottom: 1px solid var(--border);
     }
-    .sim-packet-table td { padding: 6px; border-bottom: 1px solid var(--border); }
+    .sim-packet-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
     .sim-packet-table tr.flagged { background: rgba(239,68,68,0.08); }
     .sim-packet-table tr.flagged td:first-child { border-left: 2px solid var(--red); }
 
-    .sim-status-line {
-        display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-        font-size: 12.5px; color: var(--muted);
-    }
-    .sim-status-dot {
-        width: 8px; height: 8px; border-radius: 50%; background: var(--blue);
-        animation: sim-pulse 1s ease-in-out infinite;
-    }
-    .sim-status-dot.done { animation: none; background: var(--green); }
-    @keyframes sim-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-    .sim-alert-banner {
-        background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.35);
-        border-radius: 10px; padding: 14px; margin-bottom: 14px; display: none;
-    }
-    .sim-alert-banner.visible { display: block; }
-    .sim-alert-banner h4 { color: var(--red); font-size: 13.5px; margin-bottom: 4px; }
-    .sim-alert-banner p { font-size: 12px; color: var(--text); }
-
-    .sim-step-log { max-height: 220px; overflow-y: auto; font-size: 12.5px; }
-    .sim-step-log div { padding: 5px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
-    .sim-step-log div.hit { color: var(--red); font-weight: 600; }
-
-    .sim-summary {
-        margin-top: 14px; padding: 14px; border-radius: 10px;
-        background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.3);
-        display: none;
-    }
-    .sim-summary.visible { display: block; }
-    .sim-summary.not-detected {
-        background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3);
-    }
-
-    #sim-quiz-container { margin-top: 20px; display: none; }
+    .sim-summary { flex-shrink: 0; }
+    #sim-quiz-container { flex-shrink: 0; overflow-y: auto; max-height: 320px; margin-top: 10px; }
     #sim-quiz-container.visible { display: block; }
+    #sim-quiz-container:not(.visible) { display: none; }
+
+    /* ---------- Compact modules grid (Learning tab) ---------- */
+    .modules-grid-compact {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
+    }
+    .module-card-compact {
+        position: relative; background: #0f1522; border: 1px solid var(--border); border-radius: 10px;
+        padding: 14px; text-decoration: none; color: inherit; transition: border-color 0.15s, transform 0.15s;
+    }
+    .module-card-compact:hover { border-color: var(--accent, var(--blue)); transform: translateY(-2px); }
+    .module-card-compact .m-icon {
+        width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center;
+        justify-content: center; font-size: 14px; margin-bottom: 8px;
+    }
+    .module-card-compact h3 { font-size: 12.5px; margin-bottom: 3px; }
+    .module-card-compact p { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
+    .module-card-compact .completed-badge {
+        position: absolute; top: 10px; right: 10px; font-size: 10px; color: var(--green);
+        background: rgba(34,197,94,0.15); padding: 1px 6px; border-radius: 8px;
+    }
 </style>
 {% endblock %}
 

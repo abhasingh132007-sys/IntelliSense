@@ -72,8 +72,8 @@ def student_login():
 
         user = auth.verify_login(username, password)
         if user and user.get('role') == 'student':
-            auth.login_user_session(user)
-            return redirect(url_for('simulator'))
+                auth.login_user_session(user)
+                return redirect(url_for('student_dashboard'))
         error = "Invalid username or password."
 
     return render_template('student_login.html', error=error)
@@ -243,7 +243,76 @@ def investigate_incident(incident_id):
 # ---------------------------------------------------------------------------
 # Student portal (the existing simulator, now behind student login)
 # ---------------------------------------------------------------------------
+@app.route('/student/dashboard')
+@auth.role_required('student')
+def student_dashboard():
+    """
+    Student home page - mirrors the Administrator/Analyst dashboards
+    (stat cards + activity table) so all three roles get a consistent
+    experience after login, instead of dropping students straight into
+    the simulator with no overview.
+    """
+    user = auth.current_user()
+    progress = database.get_student_progress(user['user_id'])
 
+    sim_done = len([p for p in progress if p['item_type'] == 'simulation'])
+    mod_done = len([p for p in progress if p['item_type'] == 'module'])
+
+    scored = [p for p in progress if p.get('score') is not None and p.get('total')]
+    avg_pct = round(sum(p['score'] / p['total'] for p in scored) / len(scored) * 100) if scored else 0
+
+    stats = [
+        {"label": "Scenarios Completed", "value": f"{sim_done} / 4", "icon": "🎯",
+         "bg": "rgba(59,130,246,.15)", "color": "#3b82f6"},
+        {"label": "Modules Completed", "value": f"{mod_done} / 4", "icon": "📚",
+         "bg": "rgba(139,92,246,.15)", "color": "#8b5cf6"},
+        {"label": "Average Quiz Score", "value": f"{avg_pct}%", "icon": "📝",
+         "bg": "rgba(34,197,94,.15)", "color": "#22c55e"},
+        {"label": "Total Completed", "value": str(len(progress)), "icon": "✅",
+         "bg": "rgba(245,158,11,.15)", "color": "#f59e0b"},
+    ]
+
+    recent = sorted(progress, key=lambda p: p['completed_at'], reverse=True)[:8]
+
+    # Chart-ready breakdown: score % per completed item, for the
+    # Performance Analysis chart. Sorted lowest-first so weak areas
+    # are visually obvious without the student having to hunt for them.
+    breakdown = sorted(
+        [
+            {
+                "label": p['item_key'].replace('_', ' ').title(),
+                "type": p['item_type'],
+                "pct": round((p['score'] / p['total']) * 100) if p.get('score') is not None and p.get('total') else 0
+            }
+            for p in progress if p.get('score') is not None and p.get('total')
+        ],
+        key=lambda x: x['pct']
+    )
+    needs_review = [b for b in breakdown if b['pct'] < 70]
+
+    return render_template(
+        'student_dashboard.html',
+        current_mode='STUDENT',
+        stats=stats,
+        recent=recent,
+        breakdown=breakdown,
+        needs_review=needs_review
+    )
+
+
+def _modules_with_quiz_counts():
+    """
+    Returns learning_content's modules list with a 'quiz_count' field
+    attached to each (without mutating the original data), so cards can
+    show "3 Questions" - pulled from quiz_data so it's always accurate,
+    never hand-typed and liable to drift out of sync.
+    """
+    modules = []
+    for m in learning_content.get_all_modules():
+        m_copy = dict(m)
+        m_copy['quiz_count'] = len(quiz_data.get_module_quiz(m['key']))
+        modules.append(m_copy)
+    return modules
 @app.route('/simulator')
 @auth.role_required('student')
 def simulator():
@@ -344,11 +413,13 @@ def api_progress():
 def learning_modules_page():
     user = auth.current_user()
     completed = database.get_completed_keys(user['user_id'], 'module')
+    scores = database.get_progress_map(user['user_id'], 'module')
     return render_template(
         'learning_modules.html',
         current_mode='STUDENT',
         modules=learning_content.get_all_modules(),
         completed=completed
+         scores=scores
     )
 
 

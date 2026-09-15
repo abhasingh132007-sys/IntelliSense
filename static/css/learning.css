@@ -2,7 +2,8 @@
   learning.css
   ------------
   Shared styles for: Quiz UI, Learning Modules hub + detail page,
-  Evasion sandbox controls, Simulator threshold progress bar + badges.
+  Evasion sandbox controls, Simulator threshold progress bar + badges,
+  Worked example callouts, Quiz analysis summary.
 */
 
 /* ---------- Quiz (quiz.js renders into these classes) ---------- */
@@ -143,3 +144,64 @@
 }
 .sandbox-run-btn:hover { background: #6d28d9; }
 .sandbox-range-value { font-size: 12px; color: var(--text); }
+
+/* ---------- Example callout boxes (module_detail.html) ---------- */
+.example-box {
+    background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 12px; padding: 18px; margin-top: 8px;
+}
+.example-box-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.example-icon {
+    width: 30px; height: 30px; border-radius: 8px; background: rgba(59,130,246,0.15);
+    display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+}
+.example-box-header h4 { font-size: 14px; color: var(--text); }
+.example-box p { font-size: 13.5px; color: var(--muted); line-height: 1.65; margin-bottom: 10px; }
+.example-media-placeholder {
+    background: rgba(0,0,0,0.15); border: 1px dashed rgba(59,130,246,0.3); border-radius: 8px;
+    padding: 14px; display: flex; align-items: center; gap: 10px;
+}
+.example-media-placeholder .module-media-icon { font-size: 18px; }
+.example-media-caption { font-size: 11.5px; color: var(--muted); }
+
+/* ---------- Module card badges: quiz count + score ---------- */
+.module-quiz-count {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px;
+    color: var(--muted); margin-top: 8px;
+}
+.module-score-badge {
+    position: absolute; top: 16px; right: 16px; font-size: 10.5px; font-weight: 700;
+    padding: 3px 9px; border-radius: 10px;
+}
+.module-score-badge.high { color: var(--green); background: rgba(34,197,94,0.12); }
+.module-score-badge.mid { color: var(--amber); background: rgba(245,158,11,0.12); }
+.module-score-badge.low { color: var(--red); background: rgba(239,68,68,0.12); }
+
+/* Compact variants used inside the Simulator page's Learning tab */
+.module-card-compact .module-quiz-count { font-size: 9.5px; margin-top: 5px; }
+.module-card-compact .module-score-badge { top: 10px; right: 10px; font-size: 9.5px; padding: 1px 7px; }
+
+/* ---------- Quiz analysis summary (quiz.js renders into .quiz-analysis) ---------- */
+.quiz-analysis {
+    margin-top: 14px; padding: 14px 16px; border-radius: 10px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+}
+.quiz-analysis .qa-headline { font-size: 13.5px; font-weight: 600; margin-bottom: 8px; }
+.quiz-analysis .qa-headline.excellent { color: var(--green); }
+.quiz-analysis .qa-headline.good { color: var(--amber); }
+.quiz-analysis .qa-headline.needs-review { color: var(--red); }
+.quiz-analysis ul { list-style: none; padding: 0; margin: 0; }
+.quiz-analysis li {
+    font-size: 12px; color: var(--muted); padding: 4px 0;
+    display: flex; align-items: flex-start; gap: 6px;
+}
+.quiz-analysis li .qa-icon { flex-shrink: 0; }
+
+/* ---------- Quiz-included tag on module cards ---------- */
+.quiz-included-tag {
+    display: inline-block; margin-top: 10px; font-size: 10.5px; color: var(--blue);
+    background: rgba(59,130,246,0.1); padding: 3px 9px; border-radius: 10px;
+}
+
+/* Module detail page content, when wrapped in a dashboard .card instead of the old public-page container */
+.module-content-inline .module-section:last-child { margin-bottom: 0; }
