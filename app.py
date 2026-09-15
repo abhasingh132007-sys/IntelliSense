@@ -419,7 +419,7 @@ def learning_modules_page():
         current_mode='STUDENT',
         modules=learning_content.get_all_modules(),
         completed=completed,
-        scores=scores
+         scores=scores
     )
 
 

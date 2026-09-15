@@ -1,153 +1,135 @@
 """
-capture.py
------------
-Real packet capture using Scapy. Replaces mock_data.get_live_packets()
-as the actual source of truth once this is running.
+prevention.py
+--------------
+Blocks/unblocks IPs via iptables. This is what turns an Administrator's
+"Approve" click into a real firewall rule - closing the loop your
+architecture doc describes:
+    Approve Block -> Python -> iptables -> Malicious IP Blocked
 
-Requires root privileges (raw sockets) - run the app with sudo, e.g.:
-    sudo $(which python3) app.py
+Requires root privileges (iptables modifies kernel firewall tables), so
+the Flask app needs to run with sudo, OR your user needs passwordless
+sudo scoped to iptables specifically (see the sudoers setup note at the
+bottom of this file).
 
-Runs sniff() in a background daemon thread so it never blocks Flask's
-own request handling. Wraps everything in try/except so a permissions
-error or missing interface doesn't crash the whole app - it just logs
-a warning and the dashboard silently keeps showing an empty/stale buffer
-instead of mock data (a deliberate choice: better to show "no data yet"
-than to silently fall back to fake numbers once this module is wired in).
+Design notes:
+- Every function is wrapped so a failure (no sudo, iptables missing,
+  wrong permissions) never crashes the calling route - it returns a
+  result dict with success=False and a reason instead. An incident
+  approval should never 500 just because the firewall call failed;
+  the incident status still updates, and the failure gets surfaced to
+  the Administrator instead of silently vanishing.
+- IP addresses are validated before ever reaching subprocess, and all
+  subprocess calls use argument LISTS (never a shell string), so a
+  malformed/malicious IP can't inject extra shell commands.
 """
 
-import threading
-import socket
-from datetime import datetime
+import subprocess
+import re
 
-from modules import packet_buffer, detection, database
+IPTABLES = "/usr/sbin/iptables"  # confirm with `which iptables` on your VM; /sbin/iptables on some distros
 
-try:
-    from scapy.all import sniff, IP, TCP, UDP, ICMP
-    SCAPY_AVAILABLE = True
-except ImportError:
-    SCAPY_AVAILABLE = False
+IP_PATTERN = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
 
 
-def _get_own_ip():
+def is_valid_ip(ip):
+    if not ip or not IP_PATTERN.match(ip):
+        return False
+    return all(0 <= int(octet) <= 255 for octet in ip.split("."))
+
+
+def _run_iptables(args):
     """
-    Figures out this machine's own IP address on the active route, without
-    actually sending any traffic (UDP connect() just picks the outbound
-    interface/route - no packet is sent for a UDP "connection").
-    Used to exclude the monitored host's own traffic from detection, so
-    its own replies (SYN-ACK/RST answering a scan) don't get miscounted
-    as an attack coming from itself.
+    Runs an iptables command, returns (success: bool, output_or_error: str).
+    Never raises - callers always get a clean result to act on.
     """
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
-    except Exception:
-        return None
+        result = subprocess.run(
+            ["sudo", IPTABLES] + args,
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0:
+            return True, result.stdout
+        return False, result.stderr.strip() or f"iptables exited with code {result.returncode}"
+    except FileNotFoundError:
+        return False, "iptables not found on this system"
+    except subprocess.TimeoutExpired:
+        return False, "iptables command timed out"
+    except Exception as e:
+        return False, str(e)
 
 
-_OWN_IP = _get_own_ip()
+def is_ip_blocked(ip_address):
+    if not is_valid_ip(ip_address):
+        return False
+    success, _ = _run_iptables(["-C", "INPUT", "-s", ip_address, "-j", "DROP"])
+    return success  # -C (check) exits 0 if the rule exists, 1 if it doesn't
 
 
-def _extract_summary(pkt):
-    """Pulls out a small JSON-safe dict from a raw Scapy packet object."""
-    if IP not in pkt:
-        return None
-
-    if TCP in pkt:
-        proto = "TCP"
-        port = pkt[TCP].dport
-        flags = str(pkt[TCP].flags)
-    elif UDP in pkt:
-        proto = "UDP"
-        port = pkt[UDP].dport
-        flags = "-"
-    elif ICMP in pkt:
-        proto = "ICMP"
-        port = None
-        flags = "-"
-    else:
-        proto = "Other"
-        port = None
-        flags = "-"
-
-    return {
-        "time": datetime.fromtimestamp(float(pkt.time)).strftime("%H:%M:%S.%f")[:-3],
-        "src_ip": pkt[IP].src,
-        "dst_ip": pkt[IP].dst,
-        "protocol": proto,
-        "port": port,
-        "length": len(pkt),
-        "flags": flags
-    }
-
-
-def _process_packet(pkt):
-    summary = _extract_summary(pkt)
-    if not summary:
-        return
-
-    packet_buffer.add_packet(summary)
-
-    # Skip detection for packets the monitored host sent itself (e.g. its
-    # own SYN-ACK/RST replies answering a scan). Without this, the host's
-    # own replies get miscounted as an attack coming from itself - this
-    # was the "detecting its own IP" bug.
-    if _OWN_IP and summary["src_ip"] == _OWN_IP:
-        return
-
-    # Phase 4/D: run detection on this packet's info. A fired alert becomes
-    # a real incident with status 'New' - it enters the SOC Analyst's queue
-    # rather than being auto-blocked, matching the escalation workflow
-    # (Analyst investigates -> Administrator approves -> firewall blocks).
-    fired_alerts = detection.analyze(
-        src_ip=summary["src_ip"],
-        protocol=summary["protocol"],
-        port=summary["port"],
-        flags=summary["flags"]
-    )
-    for alert in fired_alerts:
-        org_id = database.get_default_org_id()
-        if org_id:
-            database.create_incident(
-                org_id=org_id,
-                attack_type=alert["type"],
-                source_ip=alert["source_ip"],
-                severity=alert["severity"],
-                description=alert["description"],
-                destination_ip=summary["dst_ip"]
-            )
-
-
-def start_capture(interface="ens37"):
+def block_ip(ip_address, reason=""):
     """
-    Starts sniffing in a background thread. Call once, at app startup.
-    interface: change to match your Ubuntu VM's actual NIC name (`ip a` to check).
+    Adds a DROP rule for the given IP, unless it's already blocked.
+    Returns a dict: {"success": bool, "already_blocked": bool, "error": str|None}
     """
-    if not SCAPY_AVAILABLE:
-        print("[capture] Scapy not installed - skipping real packet capture.")
-        return
+    if not is_valid_ip(ip_address):
+        return {"success": False, "already_blocked": False, "error": f"Invalid IP address: {ip_address}"}
 
-    def _run():
-        try:
-            if SCAPY_AVAILABLE:
-                from scapy.all import get_if_list
-                available = get_if_list()
-                print(f"[capture] Available interfaces on this machine: {available}")
-                if interface not in available:
-                    print(f"[capture] WARNING: '{interface}' is not in the list above. "
-                          f"Update start_capture(interface=...) in app.py to one of the names shown.")
+    if is_ip_blocked(ip_address):
+        return {"success": True, "already_blocked": True, "error": None}
 
-            print(f"[capture] Starting Scapy sniff on interface: {interface}")
-            print(f"[capture] Own IP detected as: {_OWN_IP or 'unknown - self-traffic filtering disabled'}")
-            sniff(iface=interface, prn=_process_packet, store=False)
-        except PermissionError:
-            print("[capture] Permission denied - Scapy needs root. Run with sudo.")
-        except OSError as e:
-            print(f"[capture] Could not open interface '{interface}': {e}")
-        except Exception as e:
-            print(f"[capture] Unexpected error, capture stopped: {e}")
+    success, output = _run_iptables(["-A", "INPUT", "-s", ip_address, "-j", "DROP"])
+    return {"success": success, "already_blocked": False, "error": None if success else output}
 
-    thread = threading.Thread(target=_run, daemon=True)
-    thread.start()
+
+def unblock_ip(ip_address):
+    """
+    Removes the DROP rule for the given IP.
+    Returns a dict: {"success": bool, "was_blocked": bool, "error": str|None}
+    """
+    if not is_valid_ip(ip_address):
+        return {"success": False, "was_blocked": False, "error": f"Invalid IP address: {ip_address}"}
+
+    if not is_ip_blocked(ip_address):
+        return {"success": True, "was_blocked": False, "error": None}
+
+    success, output = _run_iptables(["-D", "INPUT", "-s", ip_address, "-j", "DROP"])
+    return {"success": success, "was_blocked": True, "error": None if success else output}
+
+
+def list_blocked_ips():
+    """
+    Parses `iptables -L INPUT -n` to return currently blocked IPs.
+    Returns a list of IP strings, or an empty list if iptables isn't
+    accessible (e.g. running without sudo) - callers should treat an
+    empty list as "unknown", not necessarily "nothing is blocked".
+    """
+    success, output = _run_iptables(["-L", "INPUT", "-n"])
+    if not success:
+        return []
+
+    blocked = []
+    for line in output.splitlines():
+        if "DROP" in line:
+            parts = line.split()
+            if len(parts) >= 4 and is_valid_ip(parts[3]):
+                blocked.append(parts[3])
+    return blocked
+
+
+# ---------------------------------------------------------------------------
+# One-time setup note (not code that runs - just documentation for you):
+#
+# For block_ip/unblock_ip to work WITHOUT typing a sudo password every time
+# Flask calls them, grant passwordless sudo scoped to iptables only:
+#
+#   sudo visudo -f /etc/sudoers.d/intellisense
+#
+# Add this line (replace 'abha' with your actual username):
+#   abha ALL=(ALL) NOPASSWD: /usr/sbin/iptables
+#
+# Verify with: sudo -l
+# You should see the iptables line listed under NOPASSWD.
+#
+# Alternatively, just always run the whole Flask app with sudo
+# (sudo $(which python3) app.py) - simpler, but means Scapy AND iptables
+# calls both run as root for the life of the process.
+# ---------------------------------------------------------------------------
