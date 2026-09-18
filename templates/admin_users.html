@@ -1,0 +1,69 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Users{% endblock %}
+{% block page_title %}Users{% endblock %}
+{% block page_sub %}Manage Administrator and SOC Analyst accounts for your organization{% endblock %}
+
+{% block content %}
+
+<div class="card" style="margin-bottom:18px;">
+    <div class="card-title">Create New User</div>
+    {% if error %}
+    <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:var(--red); padding:10px 14px; border-radius:8px; font-size:12.5px; margin-bottom:14px;">
+        {{ error }}
+    </div>
+    {% endif %}
+    <form method="POST" action="{{ url_for('admin_create_user') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="display:flex; flex-direction:column; gap:5px;">
+            <label style="font-size:11.5px; color:var(--muted);">Username</label>
+            <input type="text" name="username" required
+                style="background:#0f1522; border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; font-size:13px; min-width:180px;">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:5px;">
+            <label style="font-size:11.5px; color:var(--muted);">Password</label>
+            <input type="password" name="password" required
+                style="background:#0f1522; border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; font-size:13px; min-width:180px;">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:5px;">
+            <label style="font-size:11.5px; color:var(--muted);">Role</label>
+            <select name="role" required style="background:#0f1522; border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; font-size:13px; min-width:160px;">
+                <option value="soc_analyst">SOC Analyst</option>
+                <option value="administrator">Administrator</option>
+            </select>
+        </div>
+        <button type="submit" class="go-btn" style="width:auto; padding:9px 22px;">Create User</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-title">Organization Users <span class="muted">{{ users | length }} total</span></div>
+    <table class="data-table">
+        <thead>
+            <tr><th>Username</th><th>Role</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.username }}{% if u.user_id == current_user_id %} <span class="muted" style="color:var(--muted); font-size:11px;">(you)</span>{% endif %}</td>
+                <td>
+                    <span class="status-pill {{ 'status-blocked' if u.role == 'administrator' else 'status-detected' }}">
+                        {{ 'Administrator' if u.role == 'administrator' else 'SOC Analyst' }}
+                    </span>
+                </td>
+                <td>
+                    {% if u.user_id != current_user_id %}
+                    <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.user_id) }}"
+                          onsubmit="return confirm('Remove {{ u.username }}? This cannot be undone.');">
+                        <button class="qa-btn" style="padding:5px 10px; font-size:11.5px; background:rgba(239,68,68,0.1); color:var(--red); border-color:rgba(239,68,68,0.3);">Remove</button>
+                    </form>
+                    {% else %}
+                    <span class="muted" style="font-size:11px;">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

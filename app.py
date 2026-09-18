@@ -402,7 +402,74 @@ def download_report(report_id):
         mimetype='text/plain',
         headers={'Content-Disposition': f'attachment; filename=report_{report_id}.txt'}
     )
+# ---------------------------------------------------------------------------
+# User Management - Administrator only
+# ---------------------------------------------------------------------------
 
+@app.route('/admin/users')
+@auth.role_required('administrator')
+def admin_users():
+    user = auth.current_user()
+    users = database.list_org_users(user['org_id'])
+    return render_template(
+        'admin_users.html',
+        current_mode='ADMINISTRATOR',
+        users=users,
+        current_user_id=user['user_id']
+    )
+
+
+@app.route('/admin/users/create', methods=['POST'])
+@auth.role_required('administrator')
+def admin_create_user():
+    user = auth.current_user()
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '')
+    role = request.form.get('role', '')
+
+    if not username or not password or role not in ('administrator', 'soc_analyst'):
+        return redirect(url_for('admin_users'))
+
+    success, error = database.create_org_user(user['org_id'], username, password, role)
+    if not success:
+        # Re-render the page with the error rather than silently redirecting -
+        # otherwise a duplicate username just fails with no explanation.
+        users = database.list_org_users(user['org_id'])
+        return render_template(
+            'admin_users.html',
+            current_mode='ADMINISTRATOR',
+            users=users,
+            current_user_id=user['user_id'],
+            error=error
+        )
+
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/users/<int:user_id>/delete', methods=['POST'])
+@auth.role_required('administrator')
+def admin_delete_user(user_id):
+    """
+    Two safety guards: an Administrator can't delete their own account
+    (avoids accidental lockout), and can't delete the org's last remaining
+    Administrator (avoids leaving the org with no one who can approve
+    incidents or manage users at all).
+    """
+    user = auth.current_user()
+
+    if user_id == user['user_id']:
+        return redirect(url_for('admin_users'))
+
+    target = database.get_user_by_id(user_id) if hasattr(database, 'get_user_by_id') else None
+    is_last_admin = (
+        target and target.get('role') == 'administrator'
+        and database.count_administrators(user['org_id']) <= 1
+    )
+    if is_last_admin:
+        return redirect(url_for('admin_users'))
+
+    database.delete_org_user(user_id, user['org_id'])
+    return redirect(url_for('admin_users'))
 # ---------------------------------------------------------------------------
 # Student portal (the existing simulator, now behind student login)
 # ---------------------------------------------------------------------------
@@ -476,13 +543,23 @@ def _modules_with_quiz_counts():
         m_copy['quiz_count'] = len(quiz_data.get_module_quiz(m['key']))
         modules.append(m_copy)
     return modules
+
+    
 @app.route('/simulator')
 @auth.role_required('student')
 def simulator():
-    """Learning Simulator - Student portal."""
     user = auth.current_user()
-    completed = database.get_completed_keys(user['user_id'], 'simulation')
-    return render_template('simulator.html', current_mode='STUDENT', completed=completed)
+    sim_completed = database.get_completed_keys(user['user_id'], 'simulation')
+    mod_completed = database.get_completed_keys(user['user_id'], 'module')
+    mod_scores = database.get_progress_map(user['user_id'], 'module')
+    return render_template(
+        'simulator.html',
+        current_mode='STUDENT',
+        completed=sim_completed,
+        modules=_modules_with_quiz_counts(),
+        modules_completed=mod_completed,
+        modules_scores=mod_scores
+    )
 
 @app.route('/api/simulate/<attack_type>')
 @auth.role_required('student')

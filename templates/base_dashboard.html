@@ -47,7 +47,8 @@
         <a class="nav-item {% if request.endpoint == 'logs_page' %}active{% endif %}" href="{{ url_for('logs_page') }}">
             <div class="left">📋 Logs</div>
         </a>
-        <a class="nav-item {% if request.endpoint == 'admin_reports' %}active{% endif %}" href="{{ url_for('admin_reports') }}"><div class="left">📄 Reports</div></a>        <a class="nav-item" href="#"><div class="left">👥 Users</div></a>
+        <a class="nav-item {% if request.endpoint == 'admin_reports' %}active{% endif %}" href="{{ url_for('admin_reports') }}"><div class="left">📄 Reports</div></a>     
+<a class="nav-item {% if request.endpoint == 'admin_users' %}active{% endif %}" href="{{ url_for('admin_users') }}"><div class="left">👥 Users</div></a>
     </div>
 
     {% elif session.role == 'soc_analyst' %}

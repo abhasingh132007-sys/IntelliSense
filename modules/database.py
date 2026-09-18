@@ -409,3 +409,9 @@ def get_administrators(org_id):
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+def get_user_by_id(user_id):
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
