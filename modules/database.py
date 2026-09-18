@@ -338,3 +338,74 @@ def list_soc_analysts(org_id):
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+# ---------------------------------------------------------------------------
+# Notifications - internal alerts between roles (SOC Analyst <-> Administrator)
+# Matches the architecture doc's "Internal Notifications" feature.
+# ---------------------------------------------------------------------------
+
+def create_notification(user_id, message):
+    conn = get_connection()
+    conn.execute("""
+        INSERT INTO notifications (user_id, message, is_read, created_at)
+        VALUES (?, ?, 0, ?)
+    """, (user_id, message, datetime.now().isoformat(timespec="seconds")))
+    conn.commit()
+    conn.close()
+
+
+def notify_users(user_ids, message):
+    """Convenience wrapper - sends the same notification to multiple users at once."""
+    for uid in user_ids:
+        create_notification(uid, message)
+
+
+def get_notifications(user_id, unread_only=False, limit=20):
+    conn = get_connection()
+    query = "SELECT * FROM notifications WHERE user_id = ?"
+    params = [user_id]
+    if unread_only:
+        query += " AND is_read = 0"
+    query += " ORDER BY created_at DESC LIMIT ?"
+    params.append(limit)
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_unread_count(user_id):
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT COUNT(*) as c FROM notifications WHERE user_id = ? AND is_read = 0", (user_id,)
+    ).fetchone()
+    conn.close()
+    return row["c"]
+
+
+def mark_notification_read(notification_id, user_id):
+    """user_id check prevents one user marking another user's notification as read."""
+    conn = get_connection()
+    conn.execute(
+        "UPDATE notifications SET is_read = 1 WHERE notification_id = ? AND user_id = ?",
+        (notification_id, user_id)
+    )
+    conn.commit()
+    conn.close()
+
+
+def mark_all_notifications_read(user_id):
+    conn = get_connection()
+    conn.execute("UPDATE notifications SET is_read = 1 WHERE user_id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+
+
+def get_administrators(org_id):
+    """Returns Administrator users in this org - used to notify them of new escalations."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT user_id, username FROM users WHERE org_id = ? AND role = 'administrator'",
+        (org_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

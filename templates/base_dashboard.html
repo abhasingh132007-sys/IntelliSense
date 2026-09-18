@@ -14,6 +14,7 @@
     <title>{% block title %}IntelliSense{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/shell.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-content.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
@@ -105,11 +106,26 @@
             <span class="mode-pill">{{ current_mode | default('') }}</span>
         </div>
         <div class="topbar-right">
-            <span>🌙</span>
-            <span style="font-size:12.5px; color:var(--muted);">{{ session.username }}</span>
-            <a href="{{ url_for('logout') }}" style="font-size:12px; color:var(--muted);" title="Log out">➡️ Log Out</a>
-            <div class="avatar"></div>
+    <div class="notif-bell-wrap">
+        <button class="notif-bell-btn" id="notif-bell-btn">
+            🔔
+            <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+        </button>
+        <div class="notif-dropdown" id="notif-dropdown" style="display:none;">
+            <div class="notif-dropdown-header">
+                <span>Notifications</span>
+                <button id="notif-mark-all-btn" class="notif-mark-all-btn">Mark all read</button>
+            </div>
+            <div class="notif-list" id="notif-list">
+                <p class="notif-empty">Loading...</p>
+            </div>
         </div>
+    </div>
+    <span>🌙</span>
+    <span style="font-size:12.5px; color:var(--muted);">{{ session.username }}</span>
+    <a href="{{ url_for('logout') }}" style="font-size:12px; color:var(--muted);" title="Log out">⏻</a>
+    <div class="avatar"></div>
+</div>
     </div>
 
     <div class="content">
@@ -119,7 +135,7 @@
         {% block content %}{% endblock %}
     </div>
 </div>
-
+<script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

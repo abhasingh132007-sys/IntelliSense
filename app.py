@@ -169,6 +169,11 @@ def admin_approve_incident(incident_id):
         administrator_id=user['user_id'],
         notes=updated_notes
     )
+    if incident.get('analyst_id'):
+        database.create_notification(
+            incident['analyst_id'],
+            f"Incident #{incident_id} ({incident['attack_type']}) was approved and action was taken."
+        )
     return redirect(url_for('admin_dashboard'))
 
 
@@ -177,11 +182,20 @@ def admin_approve_incident(incident_id):
 def admin_reject_incident(incident_id):
     """Administrator sends the incident back to the analyst for more investigation."""
     user = auth.current_user()
+    incident = database.get_incident(incident_id)
+
     database.update_incident(
         incident_id,
         status='Investigating',
         administrator_id=user['user_id']
     )
+
+    if incident.get('analyst_id'):
+        database.create_notification(
+            incident['analyst_id'],
+            f"Incident #{incident_id} ({incident['attack_type']}) was sent back for more investigation."
+        )
+
     return redirect(url_for('admin_dashboard'))
 
 
@@ -229,6 +243,8 @@ def investigate_incident(incident_id):
     recommendation = request.form.get('recommendation', '')
     severity = request.form.get('severity', '')
 
+    incident = database.get_incident(incident_id)
+
     database.update_incident(
         incident_id,
         notes=notes,
@@ -237,6 +253,13 @@ def investigate_incident(incident_id):
         status='Escalated',
         analyst_id=user['user_id']
     )
+
+    admins = database.get_administrators(incident['org_id'])
+    database.notify_users(
+        [a['user_id'] for a in admins],
+        f"Incident #{incident_id} ({incident['attack_type']}) escalated by {user['username']} - awaiting your review."
+    )
+
     return redirect(url_for('analyst_dashboard'))
 
 # ---------------------------------------------------------------------------
@@ -268,11 +291,15 @@ def admin_request_report():
     if not report_type or not assigned_to:
         return redirect(url_for('admin_reports'))
 
-    database.create_report_request(
+        report_id = database.create_report_request(
         org_id=user['org_id'],
         requested_by=user['user_id'],
         assigned_to=assigned_to,
         report_type=report_type
+    )
+    database.create_notification(
+        assigned_to,
+        f"New report requested: \"{report_type}\" (Report #{report_id})."
     )
     return redirect(url_for('admin_reports'))
 
@@ -281,7 +308,12 @@ def admin_request_report():
 @auth.role_required('administrator')
 def admin_review_report(report_id):
     """Administrator marks a submitted report as reviewed - closes the loop."""
+    report = database.get_report(report_id)
     database.update_report(report_id, status='Reviewed')
+    database.create_notification(
+        report['assigned_to'],
+        f"Report #{report_id} ({report['report_type']}) has been reviewed by the Administrator."
+    )
     return redirect(url_for('admin_reports'))
 
 
@@ -328,12 +360,16 @@ def submit_report(report_id):
     if not report or report['assigned_to'] != user['user_id']:
         return redirect(url_for('analyst_reports'))
 
-    database.update_report(
+        database.update_report(
         report_id,
         summary=request.form.get('summary', ''),
         analysis=request.form.get('analysis', ''),
         recommendation=request.form.get('recommendation', ''),
         status='Submitted'
+    )
+    database.create_notification(
+        report['requested_by'],
+        f"Report #{report_id} ({report['report_type']}) has been submitted and is ready for review."
     )
     return redirect(url_for('analyst_reports'))
 
@@ -672,6 +708,31 @@ def api_unblock_ip(ip_address):
 def api_clear_logs():
     return jsonify({"status": "cleared", "message": "Logs cleared (placeholder - no log table yet)"})
 
+@app.route('/api/notifications')
+@auth.api_login_required
+def api_notifications():
+    """Returns the logged-in user's recent notifications + unread count - polled by the bell dropdown."""
+    user = auth.current_user()
+    return jsonify({
+        "notifications": database.get_notifications(user['user_id']),
+        "unread_count": database.get_unread_count(user['user_id'])
+    })
+
+
+@app.route('/api/notifications/<int:notification_id>/read', methods=['POST'])
+@auth.api_login_required
+def api_mark_notification_read(notification_id):
+    user = auth.current_user()
+    database.mark_notification_read(notification_id, user['user_id'])
+    return jsonify({"status": "ok"})
+
+
+@app.route('/api/notifications/read-all', methods=['POST'])
+@auth.api_login_required
+def api_mark_all_notifications_read():
+    user = auth.current_user()
+    database.mark_all_notifications_read(user['user_id'])
+    return jsonify({"status": "ok"})
 
 @app.route('/api/export-report')
 @auth.api_login_required
