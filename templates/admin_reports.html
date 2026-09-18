@@ -1,0 +1,72 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+{% block page_sub %}Request reports from your SOC Analysts and review what's submitted{% endblock %}
+
+{% block content %}
+
+<div class="card" style="margin-bottom:18px;">
+    <div class="card-title">Request a New Report</div>
+    {% if analysts %}
+    <form method="POST" action="{{ url_for('admin_request_report') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="display:flex; flex-direction:column; gap:5px;">
+            <label style="font-size:11.5px; color:var(--muted);">Report Type</label>
+            <select name="report_type" required style="background:#0f1522; border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; font-size:13px; min-width:220px;">
+                <option value="Incident Summary">Incident Summary</option>
+                <option value="Weekly Activity">Weekly Activity</option>
+                <option value="Attack Trend Analysis">Attack Trend Analysis</option>
+                <option value="Custom Report">Custom Report</option>
+            </select>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:5px;">
+            <label style="font-size:11.5px; color:var(--muted);">Assign To</label>
+            <select name="assigned_to" required style="background:#0f1522; border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; font-size:13px; min-width:200px;">
+                {% for a in analysts %}
+                <option value="{{ a.user_id }}">{{ a.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="go-btn" style="width:auto; padding:9px 22px;">Request Report</button>
+    </form>
+    {% else %}
+    <p style="color:var(--muted);">No SOC Analysts found in your organization to assign a report to.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-title">All Reports <span class="muted">{{ reports | length }} total</span></div>
+    {% if reports %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Type</th><th>Status</th><th>Requested</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for r in reports %}
+            <tr>
+                <td>{{ r.report_type }}</td>
+                <td>
+                    <span class="status-pill {{ 'status-blocked' if r.status == 'Reviewed' else 'status-detected' }}">{{ r.status }}</span>
+                </td>
+                <td>{{ r.created_at }}</td>
+                <td style="white-space:nowrap;">
+                    <a class="qa-btn" style="padding:5px 10px; font-size:11.5px; display:inline-block;" href="{{ url_for('report_detail', report_id=r.report_id) }}">View</a>
+                    {% if r.status == 'Submitted' %}
+                    <form method="POST" action="{{ url_for('admin_review_report', report_id=r.report_id) }}" style="display:inline;">
+                        <button class="qa-btn" style="padding:5px 10px; font-size:11.5px; background:rgba(34,197,94,0.15); color:var(--green); border-color:rgba(34,197,94,0.3);">Mark Reviewed</button>
+                    </form>
+                    {% endif %}
+                    {% if r.status != 'Requested' %}
+                    <a class="qa-btn" style="padding:5px 10px; font-size:11.5px; display:inline-block;" href="{{ url_for('download_report', report_id=r.report_id) }}">⬇ Download</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--muted); padding:16px 0;">No reports requested yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

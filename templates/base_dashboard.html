@@ -46,8 +46,7 @@
         <a class="nav-item {% if request.endpoint == 'logs_page' %}active{% endif %}" href="{{ url_for('logs_page') }}">
             <div class="left">📋 Logs</div>
         </a>
-        <a class="nav-item" href="#"><div class="left">📄 Reports</div></a>
-        <a class="nav-item" href="#"><div class="left">👥 Users</div></a>
+        <a class="nav-item {% if request.endpoint == 'admin_reports' %}active{% endif %}" href="{{ url_for('admin_reports') }}"><div class="left">📄 Reports</div></a>        <a class="nav-item" href="#"><div class="left">👥 Users</div></a>
     </div>
 
     {% elif session.role == 'soc_analyst' %}
@@ -71,8 +70,7 @@
         <a class="nav-item {% if request.endpoint == 'logs_page' %}active{% endif %}" href="{{ url_for('logs_page') }}">
             <div class="left">📋 Logs</div>
         </a>
-        <a class="nav-item" href="#"><div class="left">📄 Reports</div></a>
-    </div>
+        <a class="nav-item {% if request.endpoint == 'analyst_reports' %}active{% endif %}" href="{{ url_for('analyst_reports') }}"><div class="left">📄 Reports</div></a>    </div>
         {% elif session.role == 'student' %}
     <div class="nav-section">
         <div class="nav-label">Main</div>

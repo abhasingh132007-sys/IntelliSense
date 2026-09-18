@@ -1,0 +1,67 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - Report #{{ report.report_id }}{% endblock %}
+{% block page_title %}Report #{{ report.report_id }} &mdash; {{ report.report_type }}{% endblock %}
+{% block page_sub %}Status: {{ report.status }} &middot; Requested {{ report.created_at }}{% endblock %}
+
+{% block content %}
+
+{% if can_edit %}
+<div class="card">
+    <div class="card-title">Write This Report</div>
+    <form method="POST" action="{{ url_for('submit_report', report_id=report.report_id) }}">
+        <label style="display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px;">Summary</label>
+        <textarea name="summary" rows="3" required
+            style="width:100%; padding:10px; background:#0f1522; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; margin-bottom:14px;"
+            placeholder="High-level overview of what this report covers.">{{ report.summary or '' }}</textarea>
+
+        <label style="display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px;">Analysis</label>
+        <textarea name="analysis" rows="4" required
+            style="width:100%; padding:10px; background:#0f1522; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; margin-bottom:14px;"
+            placeholder="Detailed findings - patterns observed, incidents reviewed, etc.">{{ report.analysis or '' }}</textarea>
+
+        <label style="display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px;">Recommendation</label>
+        <textarea name="recommendation" rows="3" required
+            style="width:100%; padding:10px; background:#0f1522; border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; margin-bottom:18px;"
+            placeholder="What should the Administrator do next?">{{ report.recommendation or '' }}</textarea>
+
+        <button type="submit" class="go-btn" style="width:auto; padding:10px 24px; display:inline-block;">Submit Report →</button>
+    </form>
+</div>
+
+{% else %}
+<div class="card">
+    <div class="card-title">Summary</div>
+    <p style="color:var(--text); font-size:14px; line-height:1.7;">{{ report.summary or '(Not yet submitted)' }}</p>
+</div>
+
+{% if report.analysis %}
+<div class="card">
+    <div class="card-title">Analysis</div>
+    <p style="color:var(--text); font-size:14px; line-height:1.7;">{{ report.analysis }}</p>
+</div>
+{% endif %}
+
+{% if report.recommendation %}
+<div class="card">
+    <div class="card-title">Recommendation</div>
+    <p style="color:var(--text); font-size:14px; line-height:1.7;">{{ report.recommendation }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-title">Actions</div>
+    <div class="quick-actions">
+        {% if report.status != 'Requested' %}
+        <a class="qa-btn" href="{{ url_for('download_report', report_id=report.report_id) }}">⬇ Download</a>
+        {% endif %}
+        {% if session.role == 'administrator' and report.status == 'Submitted' %}
+        <form method="POST" action="{{ url_for('admin_review_report', report_id=report.report_id) }}">
+            <button class="qa-btn" style="background:rgba(34,197,94,0.15); color:var(--green); border-color:rgba(34,197,94,0.3);">✅ Mark Reviewed</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

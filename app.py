@@ -239,6 +239,133 @@ def investigate_incident(incident_id):
     )
     return redirect(url_for('analyst_dashboard'))
 
+# ---------------------------------------------------------------------------
+# Reports - Administrator requests a report and assigns it to a SOC Analyst;
+# the Analyst writes and submits it; the Administrator reviews/downloads it.
+# ---------------------------------------------------------------------------
+
+@app.route('/admin/reports')
+@auth.role_required('administrator')
+def admin_reports():
+    user = auth.current_user()
+    reports = database.get_reports(user['org_id'])
+    analysts = database.list_soc_analysts(user['org_id'])
+    return render_template(
+        'admin_reports.html',
+        current_mode='ADMINISTRATOR',
+        reports=reports,
+        analysts=analysts
+    )
+
+
+@app.route('/admin/reports/request', methods=['POST'])
+@auth.role_required('administrator')
+def admin_request_report():
+    user = auth.current_user()
+    report_type = request.form.get('report_type', '').strip()
+    assigned_to = request.form.get('assigned_to', type=int)
+
+    if not report_type or not assigned_to:
+        return redirect(url_for('admin_reports'))
+
+    database.create_report_request(
+        org_id=user['org_id'],
+        requested_by=user['user_id'],
+        assigned_to=assigned_to,
+        report_type=report_type
+    )
+    return redirect(url_for('admin_reports'))
+
+
+@app.route('/admin/reports/<int:report_id>/review', methods=['POST'])
+@auth.role_required('administrator')
+def admin_review_report(report_id):
+    """Administrator marks a submitted report as reviewed - closes the loop."""
+    database.update_report(report_id, status='Reviewed')
+    return redirect(url_for('admin_reports'))
+
+
+@app.route('/analyst/reports')
+@auth.role_required('soc_analyst')
+def analyst_reports():
+    user = auth.current_user()
+    reports = database.get_reports(user['org_id'], assigned_to=user['user_id'])
+    return render_template('analyst_reports.html', current_mode='SOC ANALYST', reports=reports)
+
+
+@app.route('/reports/<int:report_id>')
+@auth.login_required
+def report_detail(report_id):
+    """
+    Shared view/edit page. The SOC Analyst it's assigned to can fill in
+    and submit it while status is 'Requested'; everyone else (and the
+    analyst too, once submitted) just sees a read-only view.
+    """
+    report = database.get_report(report_id)
+    if not report:
+        return redirect(url_for('role_home', role=session['role']))
+
+    user = auth.current_user()
+    can_edit = (
+        session['role'] == 'soc_analyst'
+        and report['assigned_to'] == user['user_id']
+        and report['status'] == 'Requested'
+    )
+    return render_template(
+        'report_detail.html',
+        current_mode=session['role'].upper(),
+        report=report,
+        can_edit=can_edit
+    )
+
+
+@app.route('/reports/<int:report_id>/submit', methods=['POST'])
+@auth.role_required('soc_analyst')
+def submit_report(report_id):
+    """SOC Analyst writes and submits the requested report."""
+    user = auth.current_user()
+    report = database.get_report(report_id)
+    if not report or report['assigned_to'] != user['user_id']:
+        return redirect(url_for('analyst_reports'))
+
+    database.update_report(
+        report_id,
+        summary=request.form.get('summary', ''),
+        analysis=request.form.get('analysis', ''),
+        recommendation=request.form.get('recommendation', ''),
+        status='Submitted'
+    )
+    return redirect(url_for('analyst_reports'))
+
+
+@app.route('/reports/<int:report_id>/download')
+@auth.login_required
+def download_report(report_id):
+    """Plain-text download of a report."""
+    report = database.get_report(report_id)
+    if not report:
+        return redirect(url_for('role_home', role=session['role']))
+
+    lines = [
+        f"IntelliSense Report #{report['report_id']}",
+        f"Type: {report['report_type']}",
+        f"Status: {report['status']}",
+        f"Created: {report['created_at']}",
+        "",
+        "SUMMARY",
+        report['summary'] or "(not yet submitted)",
+        "",
+        "ANALYSIS",
+        report['analysis'] or "-",
+        "",
+        "RECOMMENDATION",
+        report['recommendation'] or "-",
+    ]
+    return Response(
+        "\n".join(lines),
+        mimetype='text/plain',
+        headers={'Content-Disposition': f'attachment; filename=report_{report_id}.txt'}
+    )
 
 # ---------------------------------------------------------------------------
 # Student portal (the existing simulator, now behind student login)

@@ -276,3 +276,65 @@ def get_completed_keys(user_id, item_type):
     """Returns just a set of item_keys completed - handy for `if key in completed` in templates."""
     rows = get_student_progress(user_id, item_type)
     return {r["item_key"] for r in rows}
+
+# ---------------------------------------------------------------------------
+# Reports - Administrator requests, SOC Analyst prepares & submits,
+# Administrator reviews. Matches the architecture doc's Report Request flow.
+# ---------------------------------------------------------------------------
+
+def create_report_request(org_id, requested_by, assigned_to, report_type):
+    conn = get_connection()
+    cur = conn.execute("""
+        INSERT INTO reports (org_id, requested_by, assigned_to, report_type, status, created_at)
+        VALUES (?, ?, ?, ?, 'Requested', ?)
+    """, (org_id, requested_by, assigned_to, report_type, datetime.now().isoformat(timespec="seconds")))
+    conn.commit()
+    report_id = cur.lastrowid
+    conn.close()
+    return report_id
+
+
+def get_reports(org_id, status=None, assigned_to=None):
+    conn = get_connection()
+    query = "SELECT * FROM reports WHERE org_id = ?"
+    params = [org_id]
+    if status:
+        query += " AND status = ?"
+        params.append(status)
+    if assigned_to:
+        query += " AND assigned_to = ?"
+        params.append(assigned_to)
+    query += " ORDER BY created_at DESC"
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_report(report_id):
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM reports WHERE report_id = ?", (report_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def update_report(report_id, **fields):
+    """Generic updater - pass any combination of summary/analysis/recommendation/status."""
+    if not fields:
+        return
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [report_id]
+    conn = get_connection()
+    conn.execute(f"UPDATE reports SET {set_clause} WHERE report_id = ?", values)
+    conn.commit()
+    conn.close()
+
+
+def list_soc_analysts(org_id):
+    """Returns SOC Analyst users in this org - populates the 'Assign To' dropdown."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT user_id, username FROM users WHERE org_id = ? AND role = 'soc_analyst' ORDER BY username",
+        (org_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

@@ -1,0 +1,38 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}IntelliSense - My Reports{% endblock %}
+{% block page_title %}My Reports{% endblock %}
+{% block page_sub %}Report requests assigned to you by the Administrator{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-title">Assigned Reports <span class="muted">{{ reports | length }} total</span></div>
+    {% if reports %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Type</th><th>Status</th><th>Requested</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for r in reports %}
+            <tr>
+                <td>{{ r.report_type }}</td>
+                <td>
+                    <span class="status-pill {{ 'status-blocked' if r.status == 'Reviewed' else 'status-detected' }}">{{ r.status }}</span>
+                </td>
+                <td>{{ r.created_at }}</td>
+                <td>
+                    <a class="qa-btn" style="padding:5px 10px; font-size:11.5px; display:inline-block;" href="{{ url_for('report_detail', report_id=r.report_id) }}">
+                        {{ 'Write Report' if r.status == 'Requested' else 'View' }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--muted); padding:16px 0;">No reports have been assigned to you yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
