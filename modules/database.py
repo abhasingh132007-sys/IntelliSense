@@ -410,8 +410,66 @@ def get_administrators(org_id):
     conn.close()
     return [dict(r) for r in rows]
 
+
+
+# ---------------------------------------------------------------------------
+# User Management - Administrator views/adds accounts for their organization
+# ---------------------------------------------------------------------------
+
+def list_org_users(org_id):
+    """Returns every user (administrator + soc_analyst) in this org, role first then username."""
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT user_id, username, role FROM users
+        WHERE org_id = ?
+        ORDER BY role, username
+    """, (org_id,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def create_org_user(org_id, username, password, role):
+    """
+    Creates a new administrator or soc_analyst account in this org.
+    Returns (success: bool, error: str|None).
+    """
+    if role not in ('administrator', 'soc_analyst'):
+        return False, "Invalid role."
+
+    conn = get_connection()
+    try:
+        conn.execute("""
+            INSERT INTO users (org_id, username, password_hash, role)
+            VALUES (?, ?, ?, ?)
+        """, (org_id, username, generate_password_hash(password), role))
+        conn.commit()
+        return True, None
+    except sqlite3.IntegrityError:
+        return False, f"Username '{username}' is already taken."
+    finally:
+        conn.close()
+
+
+def count_administrators(org_id):
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT COUNT(*) as c FROM users WHERE org_id = ? AND role = 'administrator'", (org_id,)
+    ).fetchone()
+    conn.close()
+    return row["c"]
+
+
+def delete_org_user(user_id, org_id):
+    """org_id check prevents an admin from one org deleting a user in another org."""
+    conn = get_connection()
+    conn.execute("DELETE FROM users WHERE user_id = ? AND org_id = ?", (user_id, org_id))
+    conn.commit()
+    conn.close()
+
+
 def get_user_by_id(user_id):
     conn = get_connection()
     row = conn.execute("SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchone()
     conn.close()
     return dict(row) if row else None
+
