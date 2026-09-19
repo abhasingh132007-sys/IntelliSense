@@ -15,7 +15,8 @@ Role-based architecture:
 
 from flask import Flask, render_template, jsonify, redirect, url_for, request, session, Response
 import json
-
+import time
+from datetime import datetime
 from modules import mock_data, capture, packet_buffer, detection, database, auth, prevention, simulator as sim_engine, quiz_data, learning_content
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'intellisense-dev-key-change-in-production'
@@ -91,7 +92,7 @@ def role_home(role):
     if role == 'soc_analyst':
         return redirect(url_for('analyst_dashboard'))
     if role == 'student':
-        return redirect(url_for('simulator'))
+        return redirect(url_for('student_dashboard'))
     return redirect(url_for('home'))
 
 
@@ -291,7 +292,7 @@ def admin_request_report():
     if not report_type or not assigned_to:
         return redirect(url_for('admin_reports'))
 
-        report_id = database.create_report_request(
+    report_id = database.create_report_request(
         org_id=user['org_id'],
         requested_by=user['user_id'],
         assigned_to=assigned_to,
@@ -302,7 +303,6 @@ def admin_request_report():
         f"New report requested: \"{report_type}\" (Report #{report_id})."
     )
     return redirect(url_for('admin_reports'))
-
 
 @app.route('/admin/reports/<int:report_id>/review', methods=['POST'])
 @auth.role_required('administrator')
@@ -360,7 +360,7 @@ def submit_report(report_id):
     if not report or report['assigned_to'] != user['user_id']:
         return redirect(url_for('analyst_reports'))
 
-        database.update_report(
+    database.update_report(
         report_id,
         summary=request.form.get('summary', ''),
         analysis=request.form.get('analysis', ''),
@@ -372,7 +372,6 @@ def submit_report(report_id):
         f"Report #{report_id} ({report['report_type']}) has been submitted and is ready for review."
     )
     return redirect(url_for('analyst_reports'))
-
 
 @app.route('/reports/<int:report_id>/download')
 @auth.login_required
@@ -734,20 +733,62 @@ def api_status():
 @app.route('/api/traffic-stats')
 @auth.api_login_required
 def api_traffic_stats():
+    """
+    Real traffic + alert data now, not hardcoded numbers:
+    - traffic (incoming/outgoing) comes from packet_buffer's recent capture buffer
+    - alerts_over_time buckets this org's incidents into the same time window
+    - attack_types is a real breakdown of this org's incidents by type
+    Falls back to zeroed/empty data (not fake numbers) when there's no
+    traffic or incidents yet - consistent with how live-packets already
+    falls back to mock data only when the real buffer is empty.
+    """
+    user = auth.current_user()
+    own_ip = capture.get_own_ip()
+
+    ts = packet_buffer.get_traffic_timeseries(own_ip, buckets=7, window_seconds=180)
+    labels = ts['labels']
+
+    # Bucket this org's incidents into the same time window, for "Alerts Over Time"
+    now = time.time()
+    window_seconds = 180
+    bucket_size = window_seconds / len(labels)
+    alerts_over_time = [0] * len(labels)
+
+    incidents = database.get_incidents(user['org_id'])
+    for inc in incidents:
+        try:
+            created_epoch = datetime.fromisoformat(inc['created_at']).timestamp()
+        except (ValueError, TypeError):
+            continue
+        age = now - created_epoch
+        if 0 <= age <= window_seconds:
+            bucket_from_start = min(len(labels) - 1, int(age // bucket_size))
+            idx = len(labels) - 1 - bucket_from_start
+            alerts_over_time[idx] += 1
+
+    # Real attack-type breakdown, all-time for this org (top 5)
+    type_counts = {}
+    for inc in incidents:
+        t = inc['attack_type']
+        type_counts[t] = type_counts.get(t, 0) + 1
+
+    palette = ["#3b82f6", "#8b5cf6", "#ef4444", "#f59e0b", "#22c55e"]
+    top_types = sorted(type_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+
+    attack_labels = [t for t, _ in top_types]
+    attack_values = [c for _, c in top_types]
+    attack_colors = palette[:len(top_types)]
+
     return jsonify({
-        "labels": ["12:24", "12:24:30", "12:25", "12:25:30", "12:26", "12:26:30", "12:27"],
-        "traffic": {
-            "incoming": [300, 520, 410, 680, 540, 720, 610],
-            "outgoing": [180, 260, 220, 340, 300, 410, 360]
-        },
-        "alerts_over_time": [10, 35, 18, 42, 25, 38, 20],
+        "labels": labels,
+        "traffic": {"incoming": ts['incoming'], "outgoing": ts['outgoing']},
+        "alerts_over_time": alerts_over_time,
         "attack_types": {
-            "labels": ["Port Scan", "Failed Login", "DoS Attempt", "SQL Injection", "XSS Attack"],
-            "values": [45, 25, 15, 10, 5],
-            "colors": ["#3b82f6", "#8b5cf6", "#ef4444", "#f59e0b", "#22c55e"]
+            "labels": attack_labels,
+            "values": attack_values,
+            "colors": attack_colors
         }
     })
-
 
 @app.route('/api/incidents')
 @auth.api_login_required

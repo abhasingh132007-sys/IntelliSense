@@ -15,6 +15,7 @@ shape - that's what let us swap them out with a one-line change in app.py.
 
 from collections import deque
 import threading
+import time
 
 MAX_BUFFER_SIZE = 200
 _buffer = deque(maxlen=MAX_BUFFER_SIZE)
@@ -26,10 +27,9 @@ _total_packet_count = 0
 
 def add_packet(summary: dict):
     """
-    summary must be a small JSON-serializable dict (never a raw Scapy
-    packet object - those aren't JSON safe and expose more than needed).
+    summary must be a small JSON-serializable dict...
     """
-    global _total_packet_count
+    summary['_epoch'] = time.time()  # ADD THIS LINE - raw timestamp for bucketing, separate from the display 'time' string
     with _lock:
         _buffer.append(summary)
         _total_packet_count += 1
@@ -51,3 +51,46 @@ def clear():
     with _lock:
         _buffer.clear()
         _total_packet_count = 0
+
+def get_traffic_timeseries(own_ip, buckets=7, window_seconds=180):
+    """
+    Buckets recently captured packets into `buckets` time slots over the
+    last `window_seconds`, split into incoming (dst == own_ip) vs outgoing
+    (src == own_ip) - this is what feeds the "Live Traffic" chart.
+
+    If own_ip is unknown (capture.py couldn't detect it), everything is
+    counted as incoming rather than silently dropped, so the chart still
+    shows real activity instead of going blank.
+    """
+    now = time.time()
+    bucket_size = window_seconds / buckets
+    incoming = [0] * buckets
+    outgoing = [0] * buckets
+
+    with _lock:
+        packets = list(_buffer)
+
+    for pkt in packets:
+        epoch = pkt.get('_epoch')
+        if epoch is None:
+            continue
+        age = now - epoch
+        if age > window_seconds or age < 0:
+            continue
+
+        bucket_from_start = min(buckets - 1, int(age // bucket_size))
+        idx = buckets - 1 - bucket_from_start  # age 0 (most recent) -> last bucket
+
+        if own_ip and pkt.get('dst_ip') == own_ip:
+            incoming[idx] += 1
+        elif own_ip and pkt.get('src_ip') == own_ip:
+            outgoing[idx] += 1
+        else:
+            incoming[idx] += 1
+
+    labels = []
+    for i in range(buckets):
+        seconds_ago = (buckets - 1 - i) * bucket_size
+        labels.append("now" if i == buckets - 1 else f"-{int(seconds_ago)}s")
+
+    return {"labels": labels, "incoming": incoming, "outgoing": outgoing}

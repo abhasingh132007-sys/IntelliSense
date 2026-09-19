@@ -49,6 +49,9 @@ def _get_own_ip():
 
 _OWN_IP = _get_own_ip()
 
+def get_own_ip():
+    """Public accessor for _OWN_IP - lets app.py use it without reaching into a private module variable."""
+    return _OWN_IP
 
 def _extract_summary(pkt):
     """Pulls out a small JSON-safe dict from a raw Scapy packet object."""
