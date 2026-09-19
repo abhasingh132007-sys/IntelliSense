@@ -26,6 +26,7 @@ _total_packet_count = 0
 
 
 def add_packet(summary: dict):
+    global _total_packet_count
     """
     summary must be a small JSON-serializable dict...
     """
