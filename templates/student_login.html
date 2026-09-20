@@ -124,20 +124,20 @@
 
     <div class="demo-grid">
         <div class="demo-card">
-            <div class="demo-placeholder" style="background:linear-gradient(135deg,#1e1b4b,#6d28d9 55%,#a21caf);">
-                <div class="demo-play-icon">▶</div>
-                <span class="demo-coming-soon">Coming soon</span>
-            </div>
+            <video controls style="width:100%; aspect-ratio:16/9; border-radius:14px 14px 0 0; display:block; background:#000;">
+            <source src="{{ url_for('static', filename='videos/RunningPortScan.mp4') }}" type="video/mp4">
+            Your browser doesn't support embedded video.
+            </video>
             <div class="demo-card-body">
                 <h3>Running a Port Scan Scenario</h3>
                 <p>Step through detection logic as a simulated scan unfolds.</p>
             </div>
         </div>
         <div class="demo-card">
-            <div class="demo-placeholder" style="background:linear-gradient(135deg,#1e1b4b,#6d28d9 55%,#a21caf);">
-                <div class="demo-play-icon">▶</div>
-                <span class="demo-coming-soon">Coming soon</span>
-            </div>
+            <video controls style="width:100%; aspect-ratio:16/9; border-radius:14px 14px 0 0; display:block; background:#000;">
+            <source src="{{ url_for('static', filename='videos/prevention.mp4') }}" type="video/mp4">
+            Your browser doesn't support embedded video.
+            </video>
             <div class="demo-card-body">
                 <h3>Understanding Prevention</h3>
                 <p>See exactly what action would be taken and why.</p>
