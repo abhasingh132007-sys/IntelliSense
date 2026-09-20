@@ -125,8 +125,10 @@
     <span>🌙</span>
     <span style="font-size:12.5px; color:var(--muted);">{{ session.username }}</span>
     <a href="{{ url_for('logout') }}" style="font-size:12px; color:var(--muted);" title="Log out">↪️</a>
-    <div class="avatar"></div>
-</div>
+    <div class="avatar" style="padding: 0; overflow: hidden; background: none;">
+    <img src="https://ui-avatars.com/api/?name=Student&background=3b82f6&color=fff&size=128" 
+     alt="User Avatar" 
+     style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">
     </div>
 
     <div class="content">
