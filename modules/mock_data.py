@@ -66,32 +66,6 @@ def get_blocked_ips():
     return ips
 
 
-# ---------------------------------------------------------------------------
-# Logs - backs the Logs page
-# ---------------------------------------------------------------------------
-
-def get_logs(limit=50):
-    now = datetime.now()
-    levels = ["INFO", "WARNING", "ALERT", "INFO", "INFO"]
-    messages = [
-        "Packet capture started on interface ens33",
-        "Detection engine initialized",
-        "New connection from 192.168.1.42",
-        "Port scan pattern matched - source 192.168.1.105",
-        "iptables rule added for 192.168.1.105",
-        "Database write: alert logged",
-        "Dashboard client connected",
-        "Failed SSH login recorded for 192.168.1.203",
-    ]
-    logs = []
-    for i in range(limit):
-        logs.append({
-            "time": (now - timedelta(seconds=i * 19)).strftime("%Y-%m-%d %H:%M:%S"),
-            "level": levels[i % len(levels)],
-            "message": messages[i % len(messages)]
-        })
-    return logs
-
 
 # ---------------------------------------------------------------------------
 # Live packets - backs the Live Monitor page

@@ -14,7 +14,6 @@ Role-based architecture:
 """
 
 from flask import Flask, render_template, jsonify, redirect, url_for, request, session, Response
-import json
 import time
 from datetime import datetime
 from modules import mock_data, capture, packet_buffer, detection, database, auth, prevention, simulator as sim_engine, quiz_data, learning_content
@@ -659,9 +658,9 @@ def learning_modules_page():
     return render_template(
         'learning_modules.html',
         current_mode='STUDENT',
-        modules=learning_content.get_all_modules(),
+        modules=_modules_with_quiz_counts(),
         completed=completed,
-         scores=scores
+        scores=scores
     )
 
 
@@ -856,16 +855,6 @@ def api_mark_all_notifications_read():
     user = auth.current_user()
     database.mark_all_notifications_read(user['user_id'])
     return jsonify({"status": "ok"})
-
-@app.route('/api/export-report')
-@auth.api_login_required
-def api_export_report():
-    user = auth.current_user()
-    data = json.dumps(database.get_incidents(user['org_id']), indent=2)
-    return Response(
-        data, mimetype='application/json',
-        headers={'Content-Disposition': 'attachment; filename=intellisense_report.json'}
-    )
 
 
 if __name__ == '__main__':
