@@ -16,7 +16,7 @@ and matches what the project abstract scoped (SQLite for development).
 
 import sqlite3
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "intellisense.db")
@@ -473,3 +473,31 @@ def get_user_by_id(user_id):
     conn.close()
     return dict(row) if row else None
 
+def count_recent_incidents_by_source_ip(org_id, source_ip, attack_type=None, window_minutes=5):
+    """
+    Counts incidents from this source IP within a recent time window,
+    optionally filtered to one attack_type - reflects an ACTIVE ongoing
+    attack of a SPECIFIC kind, not mixed/stale history.
+    """
+    conn = get_connection()
+    if attack_type:
+        rows = conn.execute(
+            "SELECT created_at FROM incidents WHERE org_id = ? AND source_ip = ? AND attack_type = ?",
+            (org_id, source_ip, attack_type)
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT created_at FROM incidents WHERE org_id = ? AND source_ip = ?",
+            (org_id, source_ip)
+        ).fetchall()
+    conn.close()
+
+    cutoff = datetime.now() - timedelta(minutes=window_minutes)
+    recent_count = 0
+    for r in rows:
+        try:
+            if datetime.fromisoformat(r["created_at"]) >= cutoff:
+                recent_count += 1
+        except (ValueError, TypeError):
+            continue
+    return recent_count

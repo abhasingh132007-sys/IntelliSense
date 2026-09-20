@@ -20,6 +20,23 @@ import socket
 from datetime import datetime
 
 from modules import packet_buffer, detection, database
+from modules import packet_buffer, detection, database, prevention
+
+# A repeat offender (same source IP triggering this many total incidents)
+# gets auto-blocked immediately instead of waiting for manual escalation.
+# 3 is deliberately low: detection.py clears its tracker after each fire,
+# so a single attack run only ever produces ONE incident - hitting this
+# threshold means the SAME IP genuinely attacked multiple separate times.
+# Auto-block thresholds, tuned PER attack type - flood-style attacks
+# (DoS, ICMP) generate incidents extremely fast, so they get a tight,
+# fast trigger; slower/rarer attack types get a wider window.
+AUTO_BLOCK_THRESHOLDS = {
+    "Port Scan":       {"count": 5, "window_minutes": 2},
+    "DoS Attempt":      {"count": 3, "window_minutes": 1},
+    "ICMP Flood":       {"count": 3, "window_minutes": 1},
+    "SSH Brute Force":  {"count": 3, "window_minutes": 2},
+}
+DEFAULT_AUTO_BLOCK = {"count": 8, "window_minutes": 5}
 
 try:
     from scapy.all import sniff, IP, TCP, UDP, ICMP
@@ -113,7 +130,7 @@ def _process_packet(pkt):
     for alert in fired_alerts:
         org_id = database.get_default_org_id()
         if org_id:
-            database.create_incident(
+            incident_id = database.create_incident(
                 org_id=org_id,
                 attack_type=alert["type"],
                 source_ip=alert["source_ip"],
@@ -122,6 +139,34 @@ def _process_packet(pkt):
                 destination_ip=summary["dst_ip"]
             )
 
+            # Repeat-offender auto-block: check AFTER creating this incident,
+            # using a threshold/window specific to THIS attack type.
+            config = AUTO_BLOCK_THRESHOLDS.get(alert["type"], DEFAULT_AUTO_BLOCK)
+            repeat_count = database.count_recent_incidents_by_source_ip(
+                org_id, alert["source_ip"],
+                attack_type=alert["type"],
+                window_minutes=config["window_minutes"]
+            )
+            if repeat_count >= config["count"]:
+                result = prevention.block_ip(alert["source_ip"])
+                if result["success"]:
+                    note = (f"AUTO-BLOCKED by system: {repeat_count} '{alert['type']}' incidents "
+                             f"from this IP within {config['window_minutes']} min reached the "
+                             f"threshold ({config['count']}) - blocked without waiting for manual review.")
+                    new_status = 'Action Taken'
+                else:
+                    note = (f"Auto-block ATTEMPTED after {repeat_count} '{alert['type']}' incidents, "
+                             f"but failed: {result['error']}")
+                    new_status = 'New'
+
+                database.update_incident(incident_id, status=new_status, notes=note)
+
+                admins = database.get_administrators(org_id)
+                database.notify_users(
+                    [a['user_id'] for a in admins],
+                    f"Incident #{incident_id}: {alert['source_ip']} auto-blocked after "
+                    f"{repeat_count} '{alert['type']}' incidents."
+                )
 
 def start_capture(interface="ens37"):
     """
