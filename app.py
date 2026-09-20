@@ -308,6 +308,7 @@ def admin_request_report():
 @auth.role_required('administrator')
 def admin_review_report(report_id):
     """Administrator marks a submitted report as reviewed - closes the loop."""
+    user = auth.current_user()  # Added this line to retrieve the current user
     report = database.get_report(report_id)
     database.update_report(report_id, status='Reviewed')
     database.create_log(report['org_id'], f"Report #{report_id} reviewed by {user['username']}.")
@@ -316,7 +317,6 @@ def admin_review_report(report_id):
         f"Report #{report_id} ({report['report_type']}) has been reviewed by the Administrator."
     )
     return redirect(url_for('admin_reports'))
-
 
 @app.route('/analyst/reports')
 @auth.role_required('soc_analyst')
@@ -442,9 +442,9 @@ def admin_create_user():
             current_user_id=user['user_id'],
             error=error
         )
+    database.create_log(user['org_id'], f"User '{username}' ({role}) created by {user['username']}.")
 
     return redirect(url_for('admin_users'))
-    database.create_log(user['org_id'], f"User '{username}' ({role}) created by {user['username']}.")
 
 
 @app.route('/admin/users/<int:user_id>/delete', methods=['POST'])
