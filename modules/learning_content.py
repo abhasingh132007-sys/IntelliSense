@@ -1,15 +1,9 @@
 """
 learning_content.py
 ---------------------
-Content for the Learning Modules hub - the general cybersecurity education
-section, separate from the attack simulator. Each module has ordered
-sections (text, image, video, example, or chart), followed by a quiz
-(see quiz_data.py's MODULE_QUIZZES, keyed the same way).
-
-Images/videos are placeholders - swap for real asset URLs once you have
-them, the template doesn't need to change. "example" sections are real
-worked examples (actual commands/output) tied directly to what students
-see in the simulator, not generic filler.
+Content for the Learning Modules hub - text/image/example/chart sections,
+each followed by a quiz (see quiz_data.py's MODULE_QUIZZES, keyed the same
+way). No video sections - theory, references, and worked examples only.
 """
 
 MODULES = [
@@ -45,8 +39,7 @@ MODULES = [
              "body": "TCP is connection-oriented: it establishes a handshake (SYN, SYN-ACK, ACK) "
                       "before sending data and guarantees delivery order. UDP just sends packets "
                       "with no handshake and no guarantee - faster, but less reliable. This is "
-                      "exactly the SYN flag our detection engine looks for in a port scan."},
-            {"type": "video", "caption": "Watching a TCP handshake happen packet by packet"}
+                      "exactly the SYN flag our detection engine looks for in a port scan."}
         ]
     },
     {
@@ -76,7 +69,11 @@ MODULES = [
                       "'Escalated Incidents', reviews the note, and clicks Approve - only then "
                       "does prevention.py actually run the iptables command.",
              "caption": "The incident's status field moving through New → Investigating → Escalated → Action Taken"},
-            {"type": "video", "caption": "A SOC Analyst investigating and escalating a live incident"}
+            {"type": "text", "heading": "Auto-Block for Repeat Offenders",
+             "body": "When the same source IP crosses a per-attack-type threshold within a short "
+                      "time window (e.g. 5 Port Scan incidents within 2 minutes), IntelliSense "
+                      "blocks it immediately instead of waiting for manual review - while still "
+                      "notifying both the Analyst and Administrator, so no action is ever silent."}
         ]
     },
     {
@@ -115,8 +112,7 @@ MODULES = [
                       "in wordlist.txt against the 'admin' account. Each attempt opens a new "
                       "TCP connection to port 22 - 8 or more within 5 seconds is what our "
                       "simplified check_ssh_bruteforce() proxy watches for.",
-             "caption": "hydra output showing rapid login attempts against SSH"},
-            {"type": "video", "caption": "Running an ICMP flood and watching the alert fire"}
+             "caption": "hydra output showing rapid login attempts against SSH"}
         ]
     },
     {
@@ -145,8 +141,7 @@ MODULES = [
                       "Ubuntu server - you'll see a line like `DROP  all  --  203.0.113.50  "
                       "0.0.0.0/0`. From that point on, every packet from that IP is silently "
                       "discarded before it ever reaches your application.",
-             "caption": "iptables -L INPUT -n showing an active DROP rule"},
-            {"type": "video", "caption": "Watching a live iptables block happen after approval"}
+             "caption": "iptables -L INPUT -n showing an active DROP rule"}
         ]
     }
 ]
