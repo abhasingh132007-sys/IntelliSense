@@ -43,13 +43,13 @@
 
             {% elif section.type == 'chart' %}
                 <h3>{{ section.heading }}</h3>
-                <div class="module-chart-box">
+                <!-- The wrapper height limit locks the chart size -->
+                <div class="module-chart-box" style="position: relative; height: 280px; width: 100%; display: flex; justify-content: center;">
                     <canvas class="module-chart-canvas"
                             data-chart-type="{{ section.chart_type }}"
                             data-labels="{{ section.labels | tojson | forceescape }}"
                             data-values="{{ section['values'] | tojson | forceescape }}"
-                            data-colors="{{ (section.colors or []) | tojson | forceescape }}"
-                            height="220px"></canvas>
+                            data-colors="{{ (section.colors or []) | tojson | forceescape }}"></canvas>
                 </div>
             {% endif %}
         </div>
@@ -92,6 +92,8 @@
                     datasets: [{ data: values, backgroundColor: labels.map((_, i) => palette[i % palette.length]), borderWidth: 0 }]
                 },
                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // This forces the chart to obey the 280px wrapper height
                     plugins: { legend: { display: type === 'doughnut' || type === 'pie', labels: { color: '#9ca3af' } } },
                     scales: type === 'bar' ? {
                         x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
