@@ -52,44 +52,22 @@
             </div>
         </div>
 
-        <div class="gradient-hero-right">
-            <div class="preview-card">
-                <div class="preview-titlebar">
-                    <span class="preview-dot" style="background:#ff5f57;"></span>
-                    <span class="preview-dot" style="background:#febc2e;"></span>
-                    <span class="preview-dot" style="background:#28c840;"></span>
-                    <span class="preview-url">intellisense.app/simulator</span>
-                </div>
-                <div class="preview-body">
-                    <h4>Learning Simulator</h4>
-
-                    <div class="preview-stats">
-                        <div class="preview-stat"><div class="p-val">4</div><div class="p-lbl">SCENARIOS</div></div>
-                        <div class="preview-stat"><div class="p-val">3</div><div class="p-lbl">STEPS EACH</div></div>
-                        <div class="preview-stat"><div class="p-val">0</div><div class="p-lbl">RISK</div></div>
-                    </div>
-
-                    <div class="preview-chart">
-                        <div class="bar" style="height:40%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
-                        <div class="bar" style="height:65%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
-                        <div class="bar" style="height:30%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
-                        <div class="bar" style="height:80%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
-                        <div class="bar" style="height:55%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
-                        <div class="bar" style="height:45%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
-                        <div class="bar" style="height:70%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
-                        <div class="bar" style="height:60%; background:linear-gradient(180deg,#f0abfc,#a21caf);"></div>
-                    </div>
-
-                    <table class="preview-table">
-                        <thead><tr><th>Scenario</th><th>Detects</th><th>Status</th></tr></thead>
-                        <tbody>
-                            <tr><td>Port Scan</td><td>10 ports / 5s</td><td><span class="preview-status">Ready</span></td></tr>
-                            <tr><td>DoS Attack</td><td>50 pkts / 2s</td><td><span class="preview-status">Ready</span></td></tr>
-                            <tr><td>ICMP Flood</td><td>30 pings / 2s</td><td><span class="preview-status">Ready</span></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="gradient-hero-right">
+    <!-- Added the scale transform to make it larger -->
+    <div class="preview-card" style="transform: scale(1.2); transform-origin: center right;">
+        <div class="preview-titlebar">
+            <span class="preview-dot" style="background:#ff5f57;"></span>
+            <span class="preview-dot" style="background:#febc2e;"></span>
+            <span class="preview-dot" style="background:#28c840;"></span>
+            <span class="preview-url">intellisense.app/simulator</span>
+        </div>
+        <!-- Removed padding and replaced inner content with the image -->
+        <div class="preview-body" style="padding:0;">
+            <img src="{{ url_for('static', filename='img/SimulatorDashboard.png') }}"
+                 alt="Learning Simulator Dashboard"
+                 style="width:100%; display:block; border-radius:0 0 10px 10px;">
+        </div>  
+        </div>
         </div>
     </div>
 
