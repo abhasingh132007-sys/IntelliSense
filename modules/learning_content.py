@@ -18,7 +18,6 @@ MODULES = [
              "body": "Every device on a network has an IP address - a unique identifier "
                       "that lets other devices know where to send data. Think of it like a "
                       "postal address, but for computers. IPv4 addresses look like 192.168.1.10."},
-            {"type": "image", "caption": "How a packet travels from source to destination"},
             {"type": "text", "heading": "Ports: One Address, Many Doors",
              "body": "An IP address gets data to the right DEVICE, but a port number gets it "
                       "to the right SERVICE on that device. Port 22 is SSH, port 80 is HTTP, "
