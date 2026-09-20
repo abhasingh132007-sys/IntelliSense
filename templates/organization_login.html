@@ -50,9 +50,9 @@
                 <a href="{{ url_for('student_login') }}">Here to learn instead? Student Portal</a>
             </div>
         </div>
-
         <div class="gradient-hero-right">
-            <div class="preview-card">
+            <!-- Added a scale transform and set the origin to the right so it expands toward the empty center space -->
+            <div class="preview-card" style="transform: scale(1.2); transform-origin: center right;">
                 <div class="preview-titlebar">
                     <span class="preview-dot" style="background:#ff5f57;"></span>
                     <span class="preview-dot" style="background:#febc2e;"></span>
@@ -66,8 +66,6 @@
                 </div>  
             </div>
         </div>
-    </div>
-
     <div class="scroll-hint">
         <span>Learn more below</span>
         <span class="arrow">↓</span>
