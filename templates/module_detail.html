@@ -49,7 +49,7 @@
                             data-labels="{{ section.labels | tojson | forceescape }}"
                             data-values="{{ section['values'] | tojson | forceescape }}"
                             data-colors="{{ (section.colors or []) | tojson | forceescape }}"
-                            height="220"></canvas>
+                            height="220px"></canvas>
                 </div>
             {% endif %}
         </div>
@@ -103,7 +103,7 @@
             console.error('Chart failed to render:', err);
         }
     });
-    
+
     (async function loadModuleQuiz() {
         const container = document.getElementById('module-quiz-container');
         try {
