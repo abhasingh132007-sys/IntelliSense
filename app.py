@@ -170,6 +170,7 @@ def admin_approve_incident(incident_id):
         administrator_id=user['user_id'],
         notes=updated_notes
     )
+    database.create_log(incident['org_id'], f"Incident #{incident_id} approved by {user['username']} - {note_suffix.strip(' -')}")
     if incident.get('analyst_id'):
         database.create_notification(
             incident['analyst_id'],
@@ -260,7 +261,7 @@ def investigate_incident(incident_id):
         [a['user_id'] for a in admins],
         f"Incident #{incident_id} ({incident['attack_type']}) escalated by {user['username']} - awaiting your review."
     )
-
+    database.create_log(incident['org_id'], f"Incident #{incident_id} escalated by {user['username']}.")
     return redirect(url_for('analyst_dashboard'))
 
 # ---------------------------------------------------------------------------
@@ -310,6 +311,7 @@ def admin_review_report(report_id):
     """Administrator marks a submitted report as reviewed - closes the loop."""
     report = database.get_report(report_id)
     database.update_report(report_id, status='Reviewed')
+    database.create_log(report['org_id'], f"Report #{report_id} reviewed by {user['username']}.")
     database.create_notification(
         report['assigned_to'],
         f"Report #{report_id} ({report['report_type']}) has been reviewed by the Administrator."
@@ -443,6 +445,7 @@ def admin_create_user():
         )
 
     return redirect(url_for('admin_users'))
+    database.create_log(user['org_id'], f"User '{username}' ({role}) created by {user['username']}.")
 
 
 @app.route('/admin/users/<int:user_id>/delete', methods=['POST'])
@@ -714,12 +717,12 @@ def blocked_ips_page():
 @app.route('/logs')
 @auth.role_required('administrator', 'soc_analyst')
 def logs_page():
+    user = auth.current_user()
     return render_template(
         'logs.html',
         current_mode=session['role'].upper(),
-        logs=mock_data.get_logs()
+        logs=database.get_logs(user['org_id'])
     )
-
 
 # ---------------------------------------------------------------------------
 # API routes
@@ -824,7 +827,9 @@ def api_unblock_ip(ip_address):
 @app.route('/api/clear-logs', methods=['POST'])
 @auth.api_login_required
 def api_clear_logs():
-    return jsonify({"status": "cleared", "message": "Logs cleared (placeholder - no log table yet)"})
+    user = auth.current_user()
+    database.clear_logs(user['org_id'])
+    return jsonify({"status": "cleared", "message": "Logs cleared."})
 
 @app.route('/api/notifications')
 @auth.api_login_required

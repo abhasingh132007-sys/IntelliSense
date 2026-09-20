@@ -69,6 +69,14 @@ def init_db():
         FOREIGN KEY (analyst_id) REFERENCES users(user_id),
         FOREIGN KEY (administrator_id) REFERENCES users(user_id)
     );
+    CREATE TABLE IF NOT EXISTS logs (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    org_id INTEGER,
+    level TEXT NOT NULL DEFAULT 'INFO',
+    message TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id)
+    );
 
     CREATE TABLE IF NOT EXISTS reports (
         report_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -501,3 +509,42 @@ def count_recent_incidents_by_source_ip(org_id, source_ip, attack_type=None, win
         except (ValueError, TypeError):
             continue
     return recent_count
+
+
+# ---------------------------------------------------------------------------
+# Logs - real persisted system/security events, replacing mock_data's fake
+# generated log lines. Kept intentionally simple (no per-user scoping,
+# since logs are an organization-wide operational record, not personal data).
+# ---------------------------------------------------------------------------
+
+def create_log(org_id, message, level='INFO'):
+    conn = get_connection()
+    conn.execute(
+        "INSERT INTO logs (org_id, level, message, created_at) VALUES (?, ?, ?, ?)",
+        (org_id, level, message, datetime.now().isoformat(timespec="seconds"))
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_logs(org_id, limit=100):
+    """
+    Returns recent logs, most recent first. Aliases created_at -> time in
+    the query itself, so templates/logs.html (built for mock_data's {time,
+    level, message} shape) doesn't need any changes.
+    """
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT log_id, level, message, created_at AS time FROM logs "
+        "WHERE org_id = ? ORDER BY created_at DESC LIMIT ?",
+        (org_id, limit)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def clear_logs(org_id):
+    conn = get_connection()
+    conn.execute("DELETE FROM logs WHERE org_id = ?", (org_id,))
+    conn.commit()
+    conn.close()

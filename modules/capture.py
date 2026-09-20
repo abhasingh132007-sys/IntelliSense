@@ -138,6 +138,12 @@ def _process_packet(pkt):
                 description=alert["description"],
                 destination_ip=summary["dst_ip"]
             )
+            database.create_log(
+                org_id,
+                f"{alert['type']} detected from {alert['source_ip']} - {alert['description']}",
+                level='ALERT'
+            )
+        
 
             # Repeat-offender auto-block: check AFTER creating this incident,
             # using a threshold/window specific to THIS attack type.
@@ -160,6 +166,12 @@ def _process_packet(pkt):
                     new_status = 'New'
 
                 database.update_incident(incident_id, status=new_status, notes=note)
+                database.create_log(
+                    org_id,
+                    f"Auto-block triggered for {alert['source_ip']} after {repeat_count} "
+                    f"'{alert['type']}' incidents.",
+                    level='ALERT' if result["success"] else 'WARNING'
+                )
 
                 admins = database.get_administrators(org_id)
                 database.notify_users(
@@ -188,6 +200,9 @@ def start_capture(interface="ens37"):
                           f"Update start_capture(interface=...) in app.py to one of the names shown.")
 
             print(f"[capture] Starting Scapy sniff on interface: {interface}")
+            org_id = database.get_default_org_id()
+            if org_id:
+                database.create_log(org_id, f"Packet capture started on interface {interface}", level='INFO')
             print(f"[capture] Own IP detected as: {_OWN_IP or 'unknown - self-traffic filtering disabled'}")
             sniff(iface=interface, prn=_process_packet, store=False)
         except PermissionError:
