@@ -135,30 +135,30 @@
 
     <div class="demo-grid">
         <div class="demo-card">
-            <div class="demo-placeholder">
-                <div class="demo-play-icon">▶</div>
-                <span class="demo-coming-soon">Coming soon</span>
-            </div>
+            <video controls style="width:100%; aspect-ratio:16/9; border-radius:14px 14px 0 0; display:block; background:#000;">
+            <source src="{{ url_for('static', filename='videos/escalate.mp4') }}" type="video/mp4">
+            Your browser doesn't support embedded video.
+            </video>
             <div class="demo-card-body">
-                <h3>Investigating an Incident</h3>
-                <p>Watch a SOC Analyst triage a live alert and escalate it for approval.</p>
+            <h3>Investigating an Incident</h3>
+            <p>Watch a SOC Analyst triage a live alert and escalate it for approval.</p>
             </div>
         </div>
         <div class="demo-card">
-            <div class="demo-placeholder">
-                <div class="demo-play-icon">▶</div>
-                <span class="demo-coming-soon">Coming soon</span>
-            </div>
+            <video controls style="width:100%; aspect-ratio:16/9; border-radius:14px 14px 0 0; display:block; background:#000;">
+            <source src="{{ url_for('static', filename='videos/block.mp4') }}" type="video/mp4">
+            Your browser doesn't support embedded video.
+            </video>
             <div class="demo-card-body">
                 <h3>Approving &amp; Blocking</h3>
                 <p>See an Administrator approve an incident and the firewall respond.</p>
             </div>
         </div>
         <div class="demo-card">
-            <div class="demo-placeholder">
-                <div class="demo-play-icon">▶</div>
-                <span class="demo-coming-soon">Coming soon</span>
-            </div>
+            <video controls style="width:100%; aspect-ratio:16/9; border-radius:14px 14px 0 0; display:block; background:#000;">
+            <source src="{{ url_for('static', filename='videos/livetraffic.mp4') }}" type="video/mp4">
+            Your browser doesn't support embedded video.
+            </video>
             <div class="demo-card-body">
                 <h3>Live Traffic Dashboard</h3>
                 <p>A walkthrough of real-time packet capture and alerting in action.</p>
