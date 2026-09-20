@@ -42,7 +42,11 @@
     <p style="color:var(--muted); font-size:12.5px; margin-bottom:14px;">
         Your quiz score on each completed item, lowest first &mdash; a quick way to spot what's worth revisiting.
     </p>
-    <canvas id="performance-chart" height="90"></canvas>
+    
+    <!-- Added wrapper with dynamic height based on item count, minimum 120px -->
+    <div style="position: relative; width: 100%; height: max(120px, {{ breakdown|length * 45 }}px);">
+        <canvas id="performance-chart"></canvas>
+    </div>
 
     {% if needs_review %}
     <div class="quiz-analysis" style="margin-top:18px;">
@@ -93,7 +97,8 @@
 
 {% block scripts %}
 {% if breakdown %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
     const breakdown = {{ breakdown | tojson }};
     new Chart(document.getElementById('performance-chart'), {
         type: 'bar',
@@ -101,16 +106,30 @@
             labels: breakdown.map(b => b.label),
             datasets: [{
                 data: breakdown.map(b => b.pct),
-                backgroundColor: breakdown.map(b => b.pct >= 80 ? '#22c55e' : b.pct >= 50 ? '#f59e0b' : '#ef4444'),
-                borderRadius: 4
+                backgroundColor: breakdown.map(b => b.pct >= 80 ? '#22c55e' : b.pct >= 70 ? '#f59e0b' : '#ef4444'),
+                borderRadius: 4,
+                barThickness: 24, // Forces bars to be exactly 24px thick regardless of canvas height
+                maxBarThickness: 32
             }]
         },
         options: {
             indexAxis: 'y',
-            plugins: { legend: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false, // Forces chart to obey the div wrapper height
+            plugins: { 
+                legend: { display: false } 
+            },
             scales: {
-                x: { min: 0, max: 100, ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#9ca3af' }, grid: { display: false } }
+                x: { 
+                    min: 0, 
+                    max: 100, 
+                    ticks: { color: '#9ca3af', stepSize: 20, callback: function(value) { return value + '%' } }, 
+                    grid: { color: 'rgba(255,255,255,0.05)' } 
+                },
+                y: { 
+                    ticks: { color: '#9ca3af', font: { size: 13 } }, 
+                    grid: { display: false } 
+                }
             }
         }
     });
