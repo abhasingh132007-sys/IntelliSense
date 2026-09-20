@@ -59,35 +59,11 @@
                     <span class="preview-dot" style="background:#28c840;"></span>
                     <span class="preview-url">intellisense.app/admin/dashboard</span>
                 </div>
-                <div class="preview-body">
-                    <h4>Administrator Dashboard</h4>
-
-                    <div class="preview-stats">
-                        <div class="preview-stat"><div class="p-val">128,567</div><div class="p-lbl">PACKETS</div></div>
-                        <div class="preview-stat"><div class="p-val">4</div><div class="p-lbl">NEW</div></div>
-                        <div class="preview-stat"><div class="p-val">2</div><div class="p-lbl">ESCALATED</div></div>
-                    </div>
-
-                    <div class="preview-chart">
-                        <div class="bar" style="height:35%;"></div>
-                        <div class="bar" style="height:55%;"></div>
-                        <div class="bar" style="height:40%;"></div>
-                        <div class="bar" style="height:70%;"></div>
-                        <div class="bar" style="height:50%;"></div>
-                        <div class="bar" style="height:85%;"></div>
-                        <div class="bar" style="height:60%;"></div>
-                        <div class="bar" style="height:75%;"></div>
-                    </div>
-
-                    <table class="preview-table">
-                        <thead><tr><th>Attack</th><th>Severity</th><th>Status</th></tr></thead>
-                        <tbody>
-                            <tr><td>Port Scan</td><td class="preview-sev-high">High</td><td><span class="preview-status">Approved</span></td></tr>
-                            <tr><td>DoS Attempt</td><td class="preview-sev-high">Critical</td><td><span class="preview-status">Approved</span></td></tr>
-                            <tr><td>Failed Login</td><td class="preview-sev-med">Medium</td><td><span class="preview-status">Approved</span></td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                <div class="preview-body" style="padding:0;">
+                    <img src="{{ url_for('static', filename='img/AdminDashboard.png') }}"
+                    alt="Administrator Dashboard"
+                    style="width:100%; display:block; border-radius:0 0 10px 10px;">
+                </div>  
             </div>
         </div>
     </div>
