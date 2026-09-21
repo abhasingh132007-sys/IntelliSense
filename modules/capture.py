@@ -19,7 +19,6 @@ import threading
 import socket
 from datetime import datetime
 
-from modules import packet_buffer, detection, database
 from modules import packet_buffer, detection, database, prevention
 
 # A repeat offender (same source IP triggering this many total incidents)

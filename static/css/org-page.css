@@ -35,7 +35,7 @@ body { background: #f7f7fb; color: #1e2433; overflow-x: hidden; }
 
 /* ---------- Gradient hero ---------- */
 .gradient-hero {
-    background: linear-gradient(135deg, #2e1065 0%, #5b21b6 48%, #7c3aed 100%);
+    background: linear-gradient(135deg, #0b0f1a 0%, #1e1b4b 40%, #1d4ed8 100%);
     padding: 44px 40px 56px;
     position: relative;
     overflow: hidden;

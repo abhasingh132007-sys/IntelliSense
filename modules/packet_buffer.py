@@ -26,10 +26,11 @@ _total_packet_count = 0
 
 
 def add_packet(summary: dict):
-    global _total_packet_count
     """
     summary must be a small JSON-serializable dict...
     """
+    global _total_packet_count
+   
     summary['_epoch'] = time.time()  # ADD THIS LINE - raw timestamp for bucketing, separate from the display 'time' string
     with _lock:
         _buffer.append(summary)
