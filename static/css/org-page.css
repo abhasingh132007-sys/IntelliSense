@@ -28,7 +28,7 @@ body { background: #f7f7fb; color: #1e2433; overflow-x: hidden; }
 }
 .org-navbar .nav-links a:hover { color: #1e2433; }
 .org-navbar .nav-links a.nav-cta {
-    color: #ffffff; background: #6d28d9;
+    color: #ffffff; background: #240a4d;
     padding: 7px 16px; border-radius: 20px;
 }
 .org-navbar .nav-links a.nav-cta:hover { background: #5b21b6; color: #fff; }
