@@ -41,8 +41,8 @@ DOS_THRESHOLD = 50          # TCP packets within the window
 ICMP_WINDOW = 2             # seconds
 ICMP_THRESHOLD = 30         # ICMP packets within the window
 
-SSH_WINDOW = 5              # seconds
-SSH_THRESHOLD = 8           # SYN packets to port 22 within the window
+SSH_WINDOW = 10             # seconds
+SSH_THRESHOLD =   5         # SYN packets to port 22 within the window
 
 # Maps a simulator-friendly "check name" to its tracker/window/threshold,
 # used by get_progress() below.
