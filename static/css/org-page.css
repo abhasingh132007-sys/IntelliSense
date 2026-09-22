@@ -203,3 +203,41 @@ body { overflow-x: hidden; }
     .form-panel { padding: 30px 24px; }
     .scroll-hint { display: none; }
 }
+/* ---------- Dashboard Preview Image Constraints ---------- */
+.gradient-hero-right {
+    width: 100%;
+    max-width: 650px; /* This is the critical line that stops the image from taking over the screen */
+    margin: 40px auto 0; /* Adds spacing and centers it */
+    position: relative;
+    z-index: 2;
+}
+
+.preview-card {
+    background: var(--panel);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 80px rgba(59, 130, 246, 0.15);
+    overflow: hidden;
+}
+
+.preview-titlebar {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.preview-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.preview-url {
+    margin-left: 14px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: monospace;
+}
