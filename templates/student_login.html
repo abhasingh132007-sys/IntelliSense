@@ -24,60 +24,53 @@
     </div>
 </nav>
 
-<section class="split-hero" id="top">
-    <!-- LEFT SIDE: Text, Branding, and Dashboard Image -->
-    <div class="brand-panel" style="background: linear-gradient(135deg, #0b0f1a 0%, #1e1b4b 45%, #0891b2 100%);">
-        <canvas id="bg-canvas"></canvas>
-        
-        <div class="status-chip">
-            <span class="status-dot"></span> LEARNING SIMULATOR
-        </div>
-        
-        <h1 class="decode-text" data-text="IntelliSense">IntelliSense</h1>
-        <p class="subhead">
-            Explore how network attacks are detected and prevented, with guided
-            step-by-step scenarios &mdash; using the exact same detection engine
-            that runs in production, no real network required.
-        </p>
+<section class="gradient-hero student-theme" id="top">
+    <div class="gradient-hero-inner">
+        <div class="gradient-hero-left">
+            <span class="hero-eyebrow-pill">Learning Simulator</span>
+            <h1 class="decode-text" data-text="IntelliSense"></h1>
+            <p class="subhead">
+                Explore how network attacks are detected and prevented, with guided
+                step-by-step scenarios &mdash; using the exact same detection engine
+                that runs in production, no real network required.
+            </p>
 
-        <!-- The Dashboard Image -->
-        <div class="preview-card" style="margin-top: 30px; max-width: 650px;">
-            <div class="preview-titlebar">
-                <span class="preview-dot" style="background:#ff5f57;"></span>
-                <span class="preview-dot" style="background:#febc2e;"></span>
-                <span class="preview-dot" style="background:#28c840;"></span>
-                <span class="preview-url">intellisense.app/simulator</span>
-            </div>
-            <img src="{{ url_for('static', filename='img/Simulator.png') }}" 
-                 alt="Learning Simulator Dashboard" 
-                 style="width:100%; display:block; border-radius:0 0 10px 10px;">
-        </div>
-    </div>
+            {% if error %}<div class="hero-error">{{ error }}</div>{% endif %}
 
-    <!-- RIGHT SIDE: The Login Form -->
-    <div class="form-panel">
-        <div class="login-box">
-            <div class="login-brand">Sign In</div>
-            <p class="welcome-sub">Enter your student credentials</p>
-            
-            {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
-
-            <form method="POST">
+            <form method="POST" class="hero-login-form">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required autofocus autocomplete="username">
-                
+
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="••••••••••••" required autocomplete="current-password">
-                
-                <button type="submit" class="login-btn">Sign In &rarr;</button>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+
+                <button class="hero-login-btn" type="submit">Sign In &rarr;</button>
             </form>
-            
-            <div class="footnote">
-                Organization user instead? <a href="{{ url_for('home') }}">Sign in here</a>
+
+            <div class="hero-footnote">
+                <a href="{{ url_for('home') }}">Organization user instead? Sign in here</a>
             </div>
         </div>
+
+    <div class="gradient-hero-right">
+    <!-- Added the scale transform to make it larger -->
+    <div class="preview-card" style="transform: scale(1.2); transform-origin: center right;">
+        <div class="preview-titlebar">
+            <span class="preview-dot" style="background:#ff5f57;"></span>
+            <span class="preview-dot" style="background:#febc2e;"></span>
+            <span class="preview-dot" style="background:#28c840;"></span>
+            <span class="preview-url">intellisense.app/simulator</span>
+        </div>
+        <!-- Removed padding and replaced inner content with the image -->
+        <div class="preview-body" style="padding:0;">
+            <img src="{{ url_for('static', filename='img/Simulator.png') }}"
+                 alt="Learning Simulator Dashboard"
+                 style="width:100%; display:block; border-radius:0 0 10px 10px;">
+        </div>  
+        </div>
+        </div>
     </div>
-    
+
     <div class="scroll-hint">
         <span>Learn more below</span>
         <span class="arrow">↓</span>
