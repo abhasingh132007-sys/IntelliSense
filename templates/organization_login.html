@@ -20,52 +20,63 @@
     </div>
 </nav>
 
-<section class="gradient-hero" id="top">
-    <div class="gradient-hero-inner">
-        <div class="gradient-hero-left">
-            <span class="hero-eyebrow-pill">Organization Portal</span>
-            <h1 class="decode-text" data-text="IntelliSense"></h1>
-            <p class="subhead">
-                Monitor live traffic, investigate incidents, and manage firewall prevention
-                &mdash; with SOC Analysts and Administrators working the same escalation
-                workflow real security teams use.
-            </p>
+<section class="split-hero" id="top">
+    <!-- LEFT SIDE: Text, Branding, and Dashboard Image -->
+    <div class="brand-panel">
+        <canvas id="bg-canvas"></canvas>
+        
+        <div class="status-chip">
+            <span class="status-dot"></span> ORGANIZATION PORTAL
+        </div>
+        
+        <h1 class="decode-text" data-text="IntelliSense">IntelliSense</h1>
+        <p class="subhead">
+            Monitor live traffic, investigate incidents, and manage firewall prevention
+            &mdash; with SOC Analysts and Administrators working the same escalation
+            workflow real security teams use.
+        </p>
 
-            {% if error %}<div class="hero-error">{{ error }}</div>{% endif %}
+        <!-- The Dashboard Image -->
+        <div class="preview-card" style="margin-top: 30px; max-width: 650px;">
+            <div class="preview-titlebar">
+                <span class="preview-dot" style="background:#ff5f57;"></span>
+                <span class="preview-dot" style="background:#febc2e;"></span>
+                <span class="preview-dot" style="background:#28c840;"></span>
+                <span class="preview-url">intellisense.app/admin/dashboard</span>
+            </div>
+            <img src="{{ url_for('static', filename='img/AdminDashboard.png') }}" 
+                 alt="Admin Dashboard" 
+                 style="width:100%; display:block; border-radius:0 0 10px 10px;">
+        </div>
+    </div>
 
-            <form method="POST" class="hero-login-form">
+    <!-- RIGHT SIDE: The Login Form -->
+    <div class="form-panel">
+        <div class="login-box">
+            <div class="login-brand">Sign In</div>
+            <p class="welcome-sub">Enter your organization credentials</p>
+            
+            {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
+
+            <form method="POST">
                 <label for="org_name">Organization Name</label>
                 <input type="text" id="org_name" name="org_name" placeholder="e.g. ABC Technologies" required autofocus>
-
+                
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required autocomplete="username">
-
+                
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password">
-
-                <button class="hero-login-btn" type="submit">Sign In &rarr;</button>
+                <input type="password" id="password" name="password" placeholder="••••••••••••" required autocomplete="current-password">
+                
+                <button type="submit" class="login-btn">Sign In &rarr;</button>
             </form>
-
-            <div class="hero-footnote">
-                <a href="{{ url_for('student_login') }}">Here to learn instead? Student Portal</a>
+            
+            <div class="footnote">
+                Here to learn instead? <a href="{{ url_for('student_login') }}">Student Portal</a>
             </div>
         </div>
-        <div class="gradient-hero-right">
-            <!-- Added a scale transform and set the origin to the right so it expands toward the empty center space -->
-            <div class="preview-card" style="transform: scale(1.2); transform-origin: center right;">
-                <div class="preview-titlebar">
-                    <span class="preview-dot" style="background:#ff5f57;"></span>
-                    <span class="preview-dot" style="background:#febc2e;"></span>
-                    <span class="preview-dot" style="background:#28c840;"></span>
-                    <span class="preview-url">intellisense.app/admin/dashboard</span>
-                </div>
-                <div class="preview-body" style="padding:0;">
-                    <img src="{{ url_for('static', filename='img/AdminDashboard.png') }}"
-                    alt="Administrator Dashboard"
-                    style="width:100%; display:block; border-radius:0 0 10px 10px;">
-                </div>  
-            </div>
-        </div>
+    </div>
+    
     <div class="scroll-hint">
         <span>Learn more below</span>
         <span class="arrow">↓</span>
