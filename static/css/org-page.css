@@ -1,12 +1,9 @@
 /*
   org-page.css
   ------------
-  Split-hero login pages (Organization + Student). Rooted in the app's
-  actual dark navy theme (--bg: #0b0f1a) rather than a generic purple,
-  so the hero visually continues into the real product instead of
-  feeling like a separate marketing skin. Tightened spacing throughout
-  and added real interaction (hover lift/glow, subtle motion) so it
-  doesn't read as static blocks of flat color.
+  Updated to perfectly match your existing HTML structure.
+  Handles the split-hero layout, form styling, and constrains the 
+  dashboard preview image so it doesn't take over the screen.
 */
 
 html { scroll-behavior: smooth; }
@@ -33,76 +30,129 @@ body { overflow-x: hidden; }
 }
 .org-navbar .nav-links a.nav-cta:hover { background: rgba(96,165,250,0.2); transform: translateY(-1px); }
 
-/* ---------- Split hero (branding + login) ---------- */
-.split-hero {
-    display: flex;
+/* ---------- Split Hero Layout (Organization & Student) ---------- */
+.gradient-hero {
+    position: relative;
     min-height: calc(100vh - 53px);
-    border-bottom: 1px solid var(--border);
-}
-
-.brand-panel {
-    position: relative; flex: 1.15;
-    display: flex; flex-direction: column; justify-content: center;
-    padding: 40px 60px; border-right: 1px solid var(--border); overflow: hidden;
     background: linear-gradient(135deg, #0b0f1a 0%, #1e1b4b 45%, #1d4ed8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
 }
-#bg-canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; opacity:0.5; }
-.brand-panel > * { position: relative; z-index: 1; }
 
-.status-chip {
-    display: inline-flex; align-items: center; gap: 7px; font-size: 11px; color: #4ade80;
+.gradient-hero.student-theme {
+    background: linear-gradient(135deg, #0b0f1a 0%, #1e1b4b 45%, #0891b2 100%);
+}
+
+.gradient-hero-inner {
+    display: flex;
+    width: 100%;
+    max-width: 1400px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 40px 60px;
+    position: relative;
+    z-index: 1;
+}
+
+.gradient-hero-left {
+    flex: 0.9;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Image constraints so it doesn't break the layout */
+.gradient-hero-right {
+    flex: 1.1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    max-width: 550px; /* Constrains the image before the 1.2x scale applies */
+    width: 100%;
+}
+
+/* ---------- Text & Badges ---------- */
+.hero-eyebrow-pill {
+    display: inline-flex; align-items: center; font-size: 11px; color: #4ade80;
     background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3);
     padding: 5px 12px; border-radius: 20px; margin-bottom: 18px; width: fit-content;
+    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
 }
-.status-dot {
-    width: 6px; height: 6px; border-radius: 50%; background: #4ade80;
-    box-shadow: 0 0 6px #4ade80; animation: pulse-dot 1.6s ease-in-out infinite;
-}
-@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 
-.brand-panel h1.decode-text {
+.gradient-hero h1.decode-text {
     font-size: 38px; font-weight: 800; font-family: 'Consolas', 'Courier New', monospace;
     color: #ffffff; min-height: 48px; margin-bottom: 6px; letter-spacing: 0.01em;
     text-shadow: 0 0 30px rgba(59,130,246,0.4);
 }
-.brand-panel .subhead { color: rgba(255,255,255,0.75); font-size: 13.5px; line-height: 1.6; max-width: 440px; margin-bottom: 22px; }
 
-.feature-row {
-    display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; max-width: 420px;
-    transition: transform 0.15s;
+.gradient-hero .subhead {
+    color: rgba(255,255,255,0.75); font-size: 13.5px; line-height: 1.6; 
+    max-width: 440px; margin-bottom: 30px;
 }
-.feature-row:hover { transform: translateX(3px); }
-.feature-row .f-icon {
-    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 13px;
-    background: rgba(255,255,255,0.1);
-}
-.feature-row h4 { font-size: 12.5px; margin-bottom: 2px; color: #fff; }
-.feature-row p { font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.4; }
 
-.form-panel { flex: 0.85; display: flex; align-items: center; justify-content: center; padding: 30px 20px; }
-.login-box { width: 320px; }
-.login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font-weight: 700; font-size: 15px; }
-.login-box .welcome-sub { color: var(--muted); font-size: 12px; margin-bottom: 18px; }
-.login-box label { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 5px; margin-top: 12px; }
-.login-box label:first-of-type { margin-top: 0; }
-.login-box input {
-    width: 100%; padding: 9px 11px; background: #0f1522; border: 1px solid var(--border);
+/* ---------- Form Styles ---------- */
+.hero-login-form {
+    background: rgba(11, 15, 26, 0.6);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 24px;
+    border-radius: 12px;
+    max-width: 360px;
+    backdrop-filter: blur(10px);
+}
+
+.hero-login-form label {
+    display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 5px; margin-top: 12px;
+}
+.hero-login-form label:first-of-type { margin-top: 0; }
+
+.hero-login-form input {
+    width: 100%; padding: 10px 12px; background: #0f1522; border: 1px solid var(--border);
     border-radius: 8px; color: var(--text); font-size: 13px; transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box; /* Crucial to keep inputs inside the form */
 }
-.login-box input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-.login-btn {
-    width: 100%; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 10px;
+
+.hero-login-form input:focus { 
+    outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); 
+}
+
+.hero-login-btn {
+    width: 100%; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px;
     border-radius: 8px; font-size: 13px; font-weight: 600; margin-top: 16px; cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
 }
-.login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px -6px rgba(59,130,246,0.6); }
-.error-msg {
-    background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.3);
-    border-radius: 8px; padding: 8px 12px; font-size: 12px; margin-bottom: 12px;
+
+.hero-login-btn:hover { 
+    transform: translateY(-1px); box-shadow: 0 6px 18px -6px rgba(59,130,246,0.6); 
 }
-.footnote { font-size: 11px; color: var(--muted); margin-top: 16px; text-align: center; }
-.footnote a { color: #60a5fa; }
+
+.hero-error {
+    background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 8px; padding: 10px 12px; font-size: 12px; margin-bottom: 20px; max-width: 360px;
+}
+
+.hero-footnote { font-size: 11px; color: var(--muted); margin-top: 16px; text-align: left; max-width: 360px; }
+.hero-footnote a { color: #60a5fa; text-decoration: none;}
+.hero-footnote a:hover { text-decoration: underline; }
+
+/* ---------- Dashboard Preview Image Window ---------- */
+.preview-card {
+    background: var(--panel);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 80px rgba(59, 130, 246, 0.15);
+    overflow: hidden;
+    width: 100%;
+}
+
+.preview-titlebar {
+    background: rgba(0, 0, 0, 0.3); padding: 10px 14px; display: flex; align-items: center; gap: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.preview-dot { width: 10px; height: 10px; border-radius: 50%; }
+.preview-url { margin-left: 14px; font-size: 11px; color: rgba(255, 255, 255, 0.5); font-family: monospace; }
 
 .scroll-hint {
     position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
@@ -112,7 +162,8 @@ body { overflow-x: hidden; }
 .scroll-hint .arrow { animation: bounce-arrow 1.6s ease-in-out infinite; font-size: 13px; }
 @keyframes bounce-arrow { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
-/* ---------- Sections below the fold - tightened spacing ---------- */
+
+/* ---------- Sections below the fold ---------- */
 #about, #features, #help, #demos { scroll-margin-top: 55px; padding-top: 30px; }
 
 .about-section { max-width: 780px; margin: 0 auto 36px; padding: 0 20px; text-align: center; }
@@ -173,22 +224,6 @@ body { overflow-x: hidden; }
     border-color: #3b82f6; transform: translateY(-3px);
     box-shadow: 0 12px 28px -12px rgba(59,130,246,0.35);
 }
-.demo-placeholder {
-    aspect-ratio: 16/9; background: linear-gradient(135deg, #0b0f1a, #1e1b4b 60%, #1d4ed8);
-    display: flex; align-items: center; justify-content: center; position: relative;
-}
-.demo-play-icon {
-    width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.15);
-    border: 1.5px solid rgba(255,255,255,0.4); display: flex; align-items: center;
-    justify-content: center; color: #fff; font-size: 15px;
-    animation: pulse-play 2s ease-in-out infinite;
-}
-@keyframes pulse-play { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.15); } 50% { box-shadow: 0 0 0 8px rgba(255,255,255,0); } }
-.demo-coming-soon {
-    position: absolute; bottom: 8px; right: 10px; font-size: 9.5px; letter-spacing: 0.05em;
-    text-transform: uppercase; color: rgba(255,255,255,0.75); background: rgba(0,0,0,0.3);
-    padding: 3px 8px; border-radius: 10px;
-}
 .demo-card-body { padding: 14px; }
 .demo-card-body h3 { font-size: 12.5px; margin-bottom: 3px; }
 .demo-card-body p { font-size: 11px; color: var(--muted); }
@@ -197,9 +232,10 @@ body { overflow-x: hidden; }
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
 .reveal.visible { opacity: 1; transform: translateY(0); }
 
-@media (max-width: 900px) {
-    .split-hero { flex-direction: column; min-height: auto; }
-    .brand-panel { border-right: none; border-bottom: 1px solid var(--border); padding: 30px 24px; }
-    .form-panel { padding: 30px 24px; }
+/* ---------- Responsive Adjustments ---------- */
+@media (max-width: 950px) {
+    .gradient-hero-inner { flex-direction: column; padding: 30px 24px; gap: 40px; justify-content: center; }
+    .gradient-hero-right { max-width: 100%; justify-content: center; }
+    .hero-login-form { max-width: 100%; }
     .scroll-hint { display: none; }
 }
