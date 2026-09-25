@@ -10,6 +10,7 @@ if (clearBtn) {
             const res = await fetch('/api/clear-logs', { method: 'POST' });
             const data = await res.json();
             clearBtn.textContent = '✅ Cleared';
+            setTimeout(() => window.location.reload(), 600); // refresh so the now-empty table actually shows
         } catch (err) {
             clearBtn.textContent = '❌ Failed';
             console.error('Clear logs failed:', err);

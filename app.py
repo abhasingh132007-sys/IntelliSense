@@ -198,7 +198,13 @@ def admin_reject_incident(incident_id):
         )
 
     return redirect(url_for('admin_dashboard'))
-
+    
+@app.route('/admin/incident/<int:incident_id>/resolve', methods=['POST'])
+@auth.role_required('administrator')
+def admin_resolve_incident(incident_id):
+    """Final closing step - marks an already-actioned incident as fully resolved."""
+    database.update_incident(incident_id, status='Resolved')
+    return redirect(url_for('admin_dashboard'))
 
 # ---------------------------------------------------------------------------
 # SOC Analyst dashboard
@@ -747,12 +753,12 @@ def api_traffic_stats():
     user = auth.current_user()
     own_ip = capture.get_own_ip()
 
-    ts = packet_buffer.get_traffic_timeseries(own_ip, buckets=7, window_seconds=180)
+    ts = packet_buffer.get_traffic_timeseries(own_ip, buckets=6, window_seconds=60)
     labels = ts['labels']
 
     # Bucket this org's incidents into the same time window, for "Alerts Over Time"
     now = time.time()
-    window_seconds = 180
+    window_seconds = 60
     bucket_size = window_seconds / len(labels)
     alerts_over_time = [0] * len(labels)
 
