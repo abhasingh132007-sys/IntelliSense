@@ -175,8 +175,7 @@ def admin_approve_incident(incident_id):
             incident['analyst_id'],
             f"Incident #{incident_id} ({incident['attack_type']}) was approved and action was taken."
         )
-    return redirect(url_for('admin_dashboard'))
-
+    return redirect(url_for('incident_detail', incident_id=incident_id))
 
 @app.route('/admin/incident/<int:incident_id>/reject', methods=['POST'])
 @auth.role_required('administrator')
@@ -198,7 +197,7 @@ def admin_reject_incident(incident_id):
         )
 
     return redirect(url_for('admin_dashboard'))
-    
+
 @app.route('/admin/incident/<int:incident_id>/resolve', methods=['POST'])
 @auth.role_required('administrator')
 def admin_resolve_incident(incident_id):
