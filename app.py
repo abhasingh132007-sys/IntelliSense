@@ -863,5 +863,5 @@ def api_mark_all_notifications_read():
 
 
 if __name__ == '__main__':
-    capture.start_capture(interface="ens37")
+    capture.start_capture()
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)

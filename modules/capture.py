@@ -179,11 +179,13 @@ def _process_packet(pkt):
                     f"{repeat_count} '{alert['type']}' incidents."
                 )
 
-def start_capture(interface="ens37"):
+def start_capture(interface=None):
     """
-    Starts sniffing in a background thread. Call once, at app startup.
-    interface: change to match your Ubuntu VM's actual NIC name (`ip a` to check).
+    interface=None means "listen on ALL interfaces" - Scapy supports this
+    natively. Pass a specific interface name (e.g. "ens37") to restrict
+    capture to just that one, like before.
     """
+
     if not SCAPY_AVAILABLE:
         print("[capture] Scapy not installed - skipping real packet capture.")
         return
@@ -194,11 +196,11 @@ def start_capture(interface="ens37"):
                 from scapy.all import get_if_list
                 available = get_if_list()
                 print(f"[capture] Available interfaces on this machine: {available}")
-                if interface not in available:
+                if interface and interface not in available:
                     print(f"[capture] WARNING: '{interface}' is not in the list above. "
                           f"Update start_capture(interface=...) in app.py to one of the names shown.")
 
-            print(f"[capture] Starting Scapy sniff on interface: {interface}")
+            print(f"[capture] Starting Scapy sniff on: {interface or 'ALL interfaces'}")
             org_id = database.get_default_org_id()
             if org_id:
                 database.create_log(org_id, f"Packet capture started on interface {interface}", level='INFO')
