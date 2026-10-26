@@ -208,7 +208,7 @@ def start_capture(interface=None):
             if org_id:
                 database.create_log(org_id, f"Packet capture started on interface {interface}", level='INFO')
             print(f"[capture] Own IP detected as: {_OWN_IP or 'unknown - self-traffic filtering disabled'}")
-            sniff(iface=interface, prn=_process_packet, store=False)
+            sniff(iface=interface, filter="not port 22 and not port 8000",prn=_process_packet, store=False)
         except PermissionError:
             print("[capture] Permission denied - Scapy needs root. Run with sudo.")
         except OSError as e:
