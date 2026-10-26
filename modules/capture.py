@@ -115,6 +115,9 @@ def _process_packet(pkt):
     # was the "detecting its own IP" bug.
     if _OWN_IP and summary["src_ip"] == _OWN_IP:
         return
+    ADMIN_IP = "YOUR_HOME_PUBLIC_IP" # Replace with your actual IP from google.com/search?q=what+is+my+ip
+    if summary["src_ip"] == ADMIN_IP:
+        return
 
     # Phase 4/D: run detection on this packet's info. A fired alert becomes
     # a real incident with status 'New' - it enters the SOC Analyst's queue
@@ -205,7 +208,7 @@ def start_capture(interface=None):
             if org_id:
                 database.create_log(org_id, f"Packet capture started on interface {interface}", level='INFO')
             print(f"[capture] Own IP detected as: {_OWN_IP or 'unknown - self-traffic filtering disabled'}")
-            sniff(iface=interface, prn=_process_packet, store=False)
+            sniff(iface=interface, filter="not port 22 and not port 8000", prn=_process_packet, store=False)
         except PermissionError:
             print("[capture] Permission denied - Scapy needs root. Run with sudo.")
         except OSError as e:
